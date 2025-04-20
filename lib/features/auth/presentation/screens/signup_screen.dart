@@ -1,10 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../../config/routes/app_router.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_textstyles.dart';
-import '../../../../core/widgets/custom_action_button.dart';
-import 'login_screen.dart';
+import 'package:vidgencraft/config/routes/app_router.dart';
+import 'package:vidgencraft/core/constants/app_colors.dart';
+import 'package:vidgencraft/core/constants/app_textstyles.dart';
+import 'package:vidgencraft/core/widgets/custom_action_button.dart';
+
+import '../../../../core/constants/api_string.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -21,13 +23,18 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
   final ValueNotifier<bool> obscureConfirmPassword = ValueNotifier(true);
   late AnimationController _animationController;
   bool _isLoading = false;
+  String? _errorMessage;
+  final Dio _dio = Dio(BaseOptions(
+    baseUrl: ApiString.baseUrl,
+    headers: {'Content-Type': 'application/json'},
+  ));
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1800),
     )..forward();
   }
 
@@ -42,28 +49,142 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
-
   bool get isButtonDisabled =>
       emailController.text.isEmpty ||
           passwordController.text.isEmpty ||
-          confirmPasswordController.text.isEmpty;
+          confirmPasswordController.text.isEmpty ||
+          passwordController.text != confirmPasswordController.text;
 
+  Future<void> _signUp() async {
+    if (isButtonDisabled) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _dio.post(
+        ApiString.signup,
+        data: {
+          'email': emailController.text,
+          'password': passwordController.text,
+          'confirm_password': confirmPasswordController.text,
+        },
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      final result = response.data;
+
+      if (response.statusCode == 200 && result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'OTP sent to ${emailController.text}',
+              style: AppTextStyles.bodyRegular.copyWith(color: AppColors.neutral10),
+            ),
+            backgroundColor: AppColors.secondaryGreen80,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          ),
+        );
+        Navigator.pushNamed(
+          context,
+          AppRoutes.verifyotp,
+          arguments: emailController.text,
+        );
+      } else {
+        setState(() {
+          _errorMessage = result['error'] ?? 'Failed to send OTP';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error: $_errorMessage',
+              style: AppTextStyles.bodyRegular.copyWith(color: AppColors.neutral10),
+            ),
+            backgroundColor: AppColors.neutral100,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Log detailed error information
+      debugPrint('DioException: ${e.message}');
+      debugPrint('Error Type: ${e.type}');
+      debugPrint('Response: ${e.response?.toString()}');
+      debugPrint('Request URL: ${e.requestOptions.uri}');
+      debugPrint('Request Data: ${e.requestOptions.data}');
+
+      String errorMessage;
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+          errorMessage = 'Connection timeout. Please check your internet connection.';
+          break;
+        case DioExceptionType.sendTimeout:
+          errorMessage = 'Request timeout. Unable to send data to the server.';
+          break;
+        case DioExceptionType.receiveTimeout:
+          errorMessage = 'Response timeout. Server took too long to respond.';
+          break;
+        case DioExceptionType.badResponse:
+          errorMessage = 'Server error: ${e.response?.statusCode} ${e.response?.data['error'] ?? 'Unknown error'}';
+          break;
+        case DioExceptionType.cancel:
+          errorMessage = 'Request was cancelled.';
+          break;
+        case DioExceptionType.connectionError:
+          errorMessage = 'Connection error. Unable to reach the server.';
+          break;
+        case DioExceptionType.badCertificate:
+          errorMessage = 'Invalid SSL certificate.';
+          break;
+        case DioExceptionType.unknown:
+        default:
+          errorMessage = 'Network error: ${e.message}';
+          break;
+      }
+
+      setState(() {
+        _errorMessage = errorMessage;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error: $_errorMessage',
+            style: AppTextStyles.bodyRegular.copyWith(color: AppColors.neutral10),
+          ),
+          backgroundColor: AppColors.error60,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColorStart = isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10;
-    final backgroundColorEnd = isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral10;
-    final borderColor = isDarkMode ? AppColors.darkPrimary : AppColors.primary90;
-    final textColor = isDarkMode ? AppColors.neutral10 : AppColors.neutral80;
-
+    final backgroundColorStart = isDarkMode ? AppColors.darkHeavenStart : AppColors.neutral10;
+    final backgroundColorEnd = isDarkMode ? AppColors.darkHeavenEnd : AppColors.neutral10;
+    final borderColor = isDarkMode ? AppColors.accentGlow : AppColors.primary;
+    final textColor = isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100;
 
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [backgroundColorStart, backgroundColorEnd],
           ),
         ),
@@ -72,26 +193,31 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
             child: Center(
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header
                       Text(
-                        "Create an account",
+                        "Join the Journey",
                         style: AppTextStyles.heading3Bold.copyWith(
-                          color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+                          color: textColor,
+                          letterSpacing: 1.2,
                         ),
-                      ).animate(controller: _animationController).fadeIn().slideY(begin: 0.2),
+                      ).animate(controller: _animationController).fadeIn(duration: 600.ms).slideY(begin: -0.1),
                       const SizedBox(height: 12),
                       Text(
-                        "Enter your email below to create your account",
-                        style: AppTextStyles.subtitleRegular.copyWith(color: textColor),
+                        "Create your account to start creating magic",
+                        style: AppTextStyles.subtitleRegular.copyWith(
+                          color: textColor.withOpacity(0.8),
+                        ),
                       ).animate(controller: _animationController).fadeIn(delay: 200.ms),
                       const SizedBox(height: 32),
 
-                      /// Email Field
-                      _buildLabel("Email", isDarkMode),
+                      // Email Field
+                      _buildLabel("Email", textColor),
                       const SizedBox(height: 8),
                       _buildTextField(
                         controller: emailController,
@@ -101,11 +227,10 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                         borderColor: borderColor,
                         onChanged: () => setState(() {}),
                       ).animate(controller: _animationController).fadeIn(delay: 400.ms).slideX(begin: 0.1),
-
                       const SizedBox(height: 20),
 
-                      /// Password Field
-                      _buildLabel("Password", isDarkMode),
+                      // Password Field
+                      _buildLabel("Password", textColor),
                       const SizedBox(height: 8),
                       ValueListenableBuilder(
                         valueListenable: obscurePassword,
@@ -119,18 +244,17 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           suffix: IconButton(
                             icon: Icon(
                               value ? Icons.visibility_off : Icons.visibility,
-                              color: isDarkMode ? AppColors.darkNeutral20 : AppColors.neutral60,
+                              color: isDarkMode ? AppColors.accentGlow.withOpacity(0.7) : AppColors.neutral60,
                             ),
                             onPressed: () => obscurePassword.value = !value,
                           ),
                           onChanged: () => setState(() {}),
                         ),
                       ).animate(controller: _animationController).fadeIn(delay: 600.ms).slideX(begin: 0.1),
-
                       const SizedBox(height: 20),
 
-                      /// Confirm Password Field
-                      _buildLabel("Confirm Password", isDarkMode),
+                      // Confirm Password Field
+                      _buildLabel("Confirm Password", textColor),
                       const SizedBox(height: 8),
                       ValueListenableBuilder(
                         valueListenable: obscureConfirmPassword,
@@ -144,84 +268,83 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           suffix: IconButton(
                             icon: Icon(
                               value ? Icons.visibility_off : Icons.visibility,
-                              color: isDarkMode ? AppColors.darkNeutral20 : AppColors.neutral60,
+                              color: isDarkMode ? AppColors.accentGlow.withOpacity(0.7) : AppColors.neutral60,
                             ),
                             onPressed: () => obscureConfirmPassword.value = !value,
                           ),
                           onChanged: () => setState(() {}),
                         ),
                       ).animate(controller: _animationController).fadeIn(delay: 800.ms).slideX(begin: 0.1),
-
                       const SizedBox(height: 24),
 
-                      /// Sign Up Button
+                      // Sign Up Button
                       CustomActionButton(
-                        name: "Sign up",
+                        name: "Sign Up",
                         isFormFilled: !isButtonDisabled,
-                        onTap: (startLoading, stopLoading, btnState) async {
-                            startLoading();
-                            await Future.delayed(const Duration(seconds: 2)); // simulate API call
-                            stopLoading();
-
-                            Navigator.pushNamed(context, AppRoutes.verifyotp);
-                        },
+                        isLoaded: !_isLoading,
+                        onTap: (startLoading, stopLoading, btnState) => _signUp(),
                       ).animate(controller: _animationController).fadeIn(delay: 900.ms).scale(),
-
                       const SizedBox(height: 20),
 
+                      // Login Link
                       Center(
                         child: TextButton(
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
-                          ),
+                          onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
                           child: Text(
                             "Already have an account? Log in",
-                            style: AppTextStyles.subtitleRegular.copyWith(color: isDarkMode ? AppColors.neutral10 : AppColors.primary90),
+                            style: AppTextStyles.subtitleRegular.copyWith(
+                              color: isDarkMode ? AppColors.accentGlow : AppColors.primary90,
+                            ),
                           ),
                         ),
                       ).animate(controller: _animationController).fadeIn(delay: 1000.ms),
-
                       const SizedBox(height: 20),
 
-                      const Divider(color: AppColors.neutral30, thickness: 1.5)
-                          .animate(controller: _animationController)
-                          .fadeIn(delay: 1100.ms),
+                      // Divider
+                      Divider(
+                        color: isDarkMode ? AppColors.accentGlow.withOpacity(0.3) : AppColors.neutral30,
+                        thickness: 1.5,
+                      ).animate(controller: _animationController).fadeIn(delay: 1100.ms),
                       const SizedBox(height: 20),
 
+                      // Or Continue With
                       Center(
-                        child: Text("Or continue with", style: AppTextStyles.captionRegular.copyWith(color: textColor)),
+                        child: Text(
+                          "Or continue with",
+                          style: AppTextStyles.captionRegular.copyWith(
+                            color: textColor.withOpacity(0.8),
+                          ),
+                        ),
                       ).animate(controller: _animationController).fadeIn(delay: 1200.ms),
-
                       const SizedBox(height: 20),
 
+                      // Google Button
                       OutlinedButton.icon(
                         onPressed: () {},
                         icon: Image.asset(
-                          'assets/google.png', // Your Google icon path
-                          height: 24,
-                          width: 24,
+                          'assets/google.png',
+                          height: 30,
+                          width: 30,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.error,
+                            color: isDarkMode ? AppColors.accentGlow : AppColors.primary,
+                          ),
                         ),
                         label: Text(
                           "Continue with Google",
                           style: AppTextStyles.bodyBold.copyWith(
-                            color: isDarkMode ? AppColors.neutral10 : AppColors.neutral80,
+                            color: textColor,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 56),
-                          side: BorderSide(color: borderColor, width: 2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
+                          side: BorderSide(color: borderColor.withOpacity(0.7), width: 2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                           backgroundColor: isDarkMode
-                              ? AppColors.darkNeutral70.withOpacity(0.2)
-                              : AppColors.neutral20,
+                              ? AppColors.darkNeutral70.withOpacity(0.3)
+                              : AppColors.neutral20.withOpacity(0.3),
                         ),
-                      )
-                          .animate(controller: _animationController)
-                          .fadeIn(delay: const Duration(milliseconds: 1000))
-                          .scale(),
+                      ).animate(controller: _animationController).fadeIn(delay: 1300.ms).scale(),
                     ],
                   ),
                 ),
@@ -233,11 +356,12 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildLabel(String text, bool isDarkMode) {
+  Widget _buildLabel(String text, Color textColor) {
     return Text(
       text,
       style: AppTextStyles.captionBold.copyWith(
-        color: isDarkMode ? AppColors.neutral10 : AppColors.neutral60,
+        color: textColor.withOpacity(0.8),
+        letterSpacing: 0.5,
       ),
     );
   }
@@ -252,32 +376,42 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
     bool isObscure = false,
     required VoidCallback onChanged,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: isObscure,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: AppTextStyles.bodyRegular.copyWith(
-          color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [AppColors.darkNeutral70.withOpacity(0.3), AppColors.darkNeutral80.withOpacity(0.3)]
+              : [AppColors.neutral20.withOpacity(0.3), AppColors.neutral30.withOpacity(0.3)],
         ),
-        filled: true,
-        fillColor: isDarkMode ? AppColors.darkNeutral70.withOpacity(0.3) : AppColors.neutral20,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: borderColor, width: 2),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: borderColor.withOpacity(0.5),
+          width: 1.5,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: borderColor.withOpacity(0.7), width: 2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: borderColor, width: 2),
-        ),
-        suffixIcon: suffix,
       ),
-      style: AppTextStyles.bodyRegular.copyWith(color: textColor),
-      onChanged: (_) => onChanged(),
+      child: TextField(
+        cursorColor: borderColor,
+        cursorWidth: 2,
+        controller: controller,
+        obscureText: isObscure,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: AppTextStyles.bodyRegular.copyWith(
+            color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
+          ),
+          filled: false,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          suffixIcon: suffix,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        style: AppTextStyles.bodyRegular.copyWith(color: textColor),
+        onChanged: (_) => onChanged(),
+      ),
     );
   }
 }

@@ -24,8 +24,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..forward();
+      duration: const Duration(milliseconds: 1500),
+    )
+      ..forward();
   }
 
   @override
@@ -36,310 +37,51 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColorStart = isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10;
-    final backgroundColorEnd = isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral20;
-    final textColor = isDarkMode ? AppColors.darkNeutral20 : AppColors.neutral80;
+    final isDarkMode = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+    final backgroundColorStart = isDarkMode
+        ? AppColors.darkNeutral90
+        : AppColors.neutral10;
+    final backgroundColorEnd = isDarkMode ? AppColors.darkNeutral80 : Colors
+        .blueGrey[50]!;
+    final textColor = isDarkMode ? AppColors.darkNeutral20 : AppColors
+        .neutral80;
 
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [backgroundColorStart, backgroundColorEnd],
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 16.0, vertical: 24.0),
             child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Section (Unchanged)
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isDarkMode
-                            ? [AppColors.darkNeutral80, AppColors.darkNeutral70]
-                            : [AppColors.neutral20, AppColors.neutral30],
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: isDarkMode
-                                  ? [AppColors.darkNeutral60, AppColors.darkNeutral50]
-                                  : [AppColors.neutral30, AppColors.neutral40],
-                            ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.person,
-                              size: 30,
-                              color: AppColors.neutral10,
-                            ),
-                          ),
-                        )
-                            .animate(controller: _animationController)
-                            .fadeIn()
-                            .scale(delay: const Duration(milliseconds: 100)),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Welcome, John!',
-                              style: AppTextStyles.subtitleBold.copyWith(
-                                color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                              ),
-                            )
-                                .animate(controller: _animationController)
-                                .fadeIn(delay: const Duration(milliseconds: 200)),
-                            Text(
-                              'Create stunning videos today',
-                              style: AppTextStyles.bodyRegular.copyWith(
-                                color: textColor,
-                              ),
-                            )
-                                .animate(controller: _animationController)
-                                .fadeIn(delay: const Duration(milliseconds: 300)),
-                          ],
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: Icon(
-                            Icons.settings,
-                            color: isDarkMode ? AppColors.darkPrimary : AppColors.primary,
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ProfilePageWrapper(),
-                              ),
-                            );
-                          },
-                        )
-                            .animate(controller: _animationController)
-                            .fadeIn(delay: const Duration(milliseconds: 400))
-                            .scale(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
+                  // Header Section
+                  _buildHeaderSection(context, isDarkMode, textColor)
+                      .animate()
+                      .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+                      .slideY(begin: 0.2, end: 0),
+                  const SizedBox(height: 24),
 
-                  // Main Actions Section (Updated)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Create Your Content',
-                          style: AppTextStyles.heading4Bold.copyWith(
-                            color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                          ),
-                        )
-                            .animate(controller: _animationController)
-                            .fadeIn(delay: const Duration(milliseconds: 500))
-                            .slideX(begin: -0.2, end: 0),
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildActionCard(
-                                context,
-                                title: 'Image to Video',
-                                imagePath: 'assets/1.png',
-                                color: AppColors.neutral10,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const ImageToVideoScreen()),
-                                  );
-                                },
-                              )
-                                  .animate(controller: _animationController)
-                                  .fadeIn(delay: const Duration(milliseconds: 600))
-                                  .scale(),
-                            ),
-                            const SizedBox(width: 15),
-                            Expanded(
-                              child: _buildActionCard(
-                                context,
-                                title: 'Text to Video',
-                                imagePath: 'assets/2.png',
-                                color: AppColors.neutral10,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const TextToVideoScreen()),
-                                  );
-                                },
-                              )
-                                  .animate(controller: _animationController)
-                                  .fadeIn(delay: const Duration(milliseconds: 700))
-                                  .scale(),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildActionCard(
-                                context,
-                                title: 'Text to Image',
-                                imagePath: 'assets/3.png',
-                                color: AppColors.neutral10,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const TextToImageScreen()),
-                                  );
-                                },
-                              )
-                                  .animate(controller: _animationController)
-                                  .fadeIn(delay: const Duration(milliseconds: 800))
-                                  .scale(),
-                            ),
-                            const SizedBox(width: 15),
-                            Expanded(
-                              child: _buildActionCard(
-                                context,
-                                title: 'Library',
-                                imagePath: 'assets/4.png',
-                                color: AppColors.neutral10,
-                                onTap: () {},
-                              )
-                                  .animate(controller: _animationController)
-                                  .fadeIn(delay: const Duration(milliseconds: 900))
-                                  .scale(),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Recent Creations Section (Unchanged)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Recent Creations',
-                          style: AppTextStyles.heading5Bold.copyWith(
-                            color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                          ),
-                        )
-                            .animate(controller: _animationController)
-                            .fadeIn(delay: const Duration(milliseconds: 1000))
-                            .slideX(begin: -0.2, end: 0),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          height: 200,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: [
-                              _buildVideoCard('Two Guys Playing Football', '2 days ago')
-                                  .animate(controller: _animationController)
-                                  .fadeIn(delay: const Duration(milliseconds: 1100))
-                                  .slideX(begin: 0.2, end: 0),
-                              _buildVideoCard('Friends Hugging', 'Yesterday')
-                                  .animate(controller: _animationController)
-                                  .fadeIn(delay: const Duration(milliseconds: 1200))
-                                  .slideX(begin: 0.2, end: 0),
-                              _buildVideoCard('Nature Scene', 'Today')
-                                  .animate(controller: _animationController)
-                                  .fadeIn(delay: const Duration(milliseconds: 1300))
-                                  .slideX(begin: 0.2, end: 0),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Upgrade Plan Section (Unchanged)
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isDarkMode
-                              ? [AppColors.darkNeutral70, AppColors.darkNeutral60]
-                              : [AppColors.neutral20, AppColors.neutral30],
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Upgrade to Pro',
-                              style: AppTextStyles.subtitleBold.copyWith(
-                                color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                              ),
-                            )
-                                .animate(controller: _animationController)
-                                .fadeIn(delay: const Duration(milliseconds: 1400))
-                                .slideY(begin: 0.2, end: 0),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Unlock unlimited video generations, HD quality, and priority support!',
-                              style: AppTextStyles.bodyRegular.copyWith(
-                                color: textColor,
-                              ),
-                            )
-                                .animate(controller: _animationController)
-                                .fadeIn(delay: const Duration(milliseconds: 1500)),
-                            const SizedBox(height: 15),
-                            CustomActionButton(
-                              name: 'Upgrade Now',
-                              isFormFilled: true, // Set to true to keep the button enabled
-                              buttonHeight: 60,
-                              isWhiteThemed: false,
-                              isOutlined: false,
-                              buttonWidth: Window.getHorizontalSize(300),
-                              onTap: (startLoading, stopLoading, btnState) async {
-                                  startLoading();
-
-                                  // TODO: Handle upgrade logic here
-                                  await Future.delayed(const Duration(seconds: 1));
-
-                                  stopLoading();
-                                }
-                            )
-                                .animate(controller: _animationController)
-                                .fadeIn(delay: const Duration(milliseconds: 1600))
-                                .scale(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  // Main Actions Section
+                  _buildMainActionsSection(context, isDarkMode),
+                  const SizedBox(height: 32),
+                  // Upgrade Plan Section
+                  _buildUpgradePlanSection(context, isDarkMode, textColor)
+                      .animate()
+                      .fadeIn(duration: 600.ms, delay: 400.ms)
+                      .scale(curve: Curves.easeOut),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -349,121 +91,300 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildActionCard(
-      BuildContext context, {
-        required String title,
-        required String imagePath,
-        required Color color,
-        required VoidCallback onTap,
-        bool isFullWidth = false,
-      }) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 120,
-        width: isFullWidth ? double.infinity : null,
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              color.withOpacity(0.2),
-              color.withOpacity(0.5),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-            width: 2,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              imagePath,
-              height: 40,
-              width: 40,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: AppTextStyles.subtitleSemiBold.copyWith(
-                color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+  Widget _buildHeaderSection(BuildContext context, bool isDarkMode,
+      Color textColor) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome',
+                style: AppTextStyles.subtitleBold.copyWith(
+                  color: isDarkMode ? AppColors.neutral10 : textColor,
+                  fontSize: 22,
+                  letterSpacing: 0.5,
+                  height: 1.3,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              Text(
+                'Mayur',
+                style: AppTextStyles.titleBold.copyWith(
+                  color: isDarkMode ? AppColors.neutral10 : textColor,
+                  fontSize: 26,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Create stunning videos today',
+                style: AppTextStyles.bodyRegular.copyWith(
+                  color: isDarkMode ? AppColors.neutral40 : AppColors.neutral60,
+                  fontSize: 14,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+        IconButton(
+          icon: Icon(
+            Icons.settings,
+            size: 26,
+            color: isDarkMode ? AppColors.primary : AppColors.neutral100,
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ProfilePageWrapper()),
+            );
+          },
+        ),
+      ],
     );
   }
 
-  Widget _buildVideoCard(String title, String time) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: 150,
-      margin: const EdgeInsets.only(right: 15),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDarkMode
-              ? [AppColors.darkNeutral60, AppColors.darkNeutral50]
-              : [AppColors.neutral30, AppColors.neutral40],
+
+  Widget _buildMainActionsSection(BuildContext context, bool isDarkMode) {
+    final titleColor = isDarkMode ? Colors.white : AppColors.neutral100;
+    final subtitleColor = isDarkMode ? AppColors.neutral30 : AppColors
+        .neutral70;
+
+    return Row(
+      children: [
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Create Your Content',
+                style: AppTextStyles.heading4Bold.copyWith(
+                  color: titleColor,
+                  fontSize: 22,
+                  letterSpacing: 0.4,
+                ),
+              ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.1, end: 0),
+              const SizedBox(height: 8),
+              Text(
+                'Choose from one of the options below',
+                style: AppTextStyles.bodyRegular.copyWith(
+                  fontSize: 14,
+                  color: subtitleColor,
+                  letterSpacing: 0.2,
+                ),
+              ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.1, end: 0),
+              const SizedBox(height: 20),
+              GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _buildActionCard(
+                    context,
+                    title: 'Image to Video',
+                    imagePath: 'assets/1.png',
+                    onTap: () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ImageToVideoScreen()),
+                        ),
+                  ).animate().fadeIn(duration: 600.ms, delay: 100.ms).scale(),
+
+                  _buildActionCard(
+                    context,
+                    title: 'Text to Video',
+                    imagePath: 'assets/2.png',
+                    onTap: () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const TextToVideoScreen()),
+                        ),
+                  ).animate().fadeIn(duration: 600.ms, delay: 200.ms).scale(),
+
+                  _buildActionCard(
+                    context,
+                    title: 'Text to Image',
+                    imagePath: 'assets/3.png',
+                    onTap: () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const TextToImageScreen()),
+                        ),
+                  ).animate().fadeIn(duration: 600.ms, delay: 300.ms).scale(),
+
+                  _buildActionCard(
+                    context,
+                    title: 'Library',
+                    imagePath: 'assets/4.png',
+                    onTap: () {
+                      // TODO: Implement navigation
+                    },
+                  ).animate().fadeIn(duration: 600.ms, delay: 400.ms).scale(),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 100,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDarkMode
-                    ? [AppColors.darkNeutral50, AppColors.darkNeutral40]
-                    : [AppColors.neutral40, AppColors.neutral50],
+      ],
+    );
+  }
+
+
+  Widget _buildUpgradePlanSection(BuildContext context, bool isDarkMode,
+      Color textColor) {
+    return Row(
+      children: [
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDarkMode
+                        ? [
+                      AppColors.darkNeutral70.withOpacity(0.95),
+                      AppColors.darkNeutral60.withOpacity(0.95),
+                    ]
+                        : [
+                      const Color(0xFFF9FAFB),
+                      const Color(0xFFE8EDF1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDarkMode ? Colors.black.withOpacity(0.3) : Colors
+                          .grey.withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '✨ Premium Features',
+                      style: AppTextStyles.subtitleBold.copyWith(
+                        fontSize: 20,
+                        color: isDarkMode ? AppColors.neutral10 : textColor,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Unlock unlimited video generations, HD quality,\nand priority support with our Pro plan.',
+                      style: AppTextStyles.bodyRegular.copyWith(
+                        color: isDarkMode ? AppColors.neutral30 : AppColors.neutral70,
+                        fontSize: 14,
+                        height: 1.5,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minWidth: 200.0,
+                        minHeight: 48.0,
+                      ),
+                      child: CustomActionButton(
+                        name: 'Upgrade Now',
+                        isFormFilled: true,
+                        buttonHeight: 56,
+                        isWhiteThemed: !isDarkMode,
+                        isOutlined: false,
+                        buttonWidth: 350,
+                        onTap: (startLoading, stopLoading, btnState) async {
+                          startLoading();
+                          await Future.delayed(const Duration(seconds: 1));
+                          stopLoading();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildActionCard(BuildContext context, {
+    required String title,
+    required String imagePath,
+    required VoidCallback onTap,
+  }) {
+    final isDarkMode = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(15)),
+          gradient: LinearGradient(
+            colors: isDarkMode
+                ? [
+              AppColors.darkNeutral80.withOpacity(0.8),
+              AppColors.darkNeutral70.withOpacity(0.8)
+            ]
+                : [Colors.white, Colors.blueGrey[50]!],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDarkMode ? Colors.black26 : Colors.grey.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            child: const Center(
-              child: Icon(
-                Icons.videocam,
-                size: 40,
-                color: AppColors.neutral10,
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    imagePath,
+                    height: 48,
+                    width: 48,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    title,
+                    style: AppTextStyles.subtitleSemiBold.copyWith(
+                      color: isDarkMode ? Colors.white : AppColors.neutral100,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.subtitleMedium.copyWith(
-                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  time,
-                  style: AppTextStyles.captionRegular.copyWith(
-                    color: isDarkMode ? AppColors.darkNeutral20 : AppColors.neutral80,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

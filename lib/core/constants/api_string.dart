@@ -1,7 +1,7 @@
 // api_string.dart
 
 class ApiString {
-  static const String baseUrl = "http://localhost:8001";
+  static const String baseUrl = "http://192.168.218.191:8001";
 
   // Auth Endpoints
   static const String signup = "/signup";

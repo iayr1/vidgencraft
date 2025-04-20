@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vidgencraft/core/constants/app_colors.dart';
 import 'package:vidgencraft/core/constants/app_textstyles.dart';
 import 'package:vidgencraft/core/utils/windows.dart';
+import 'package:vidgencraft/core/widgets/custom_action_button.dart';
 
 class ImageToVideoScreen extends StatefulWidget {
   const ImageToVideoScreen({super.key});
@@ -15,38 +16,38 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
   String? selectedBackground;
   String selectedModel = 'Kling';
   final List<String> expressions = [
-    'Laughing',
-    'Crying',
-    'Hugging',
-    'Singing',
-    'Talking',
-    'Kissing',
-    'Running',
-    'Jumping',
-    'Handshake',
-    'Dancing',
-    'Smiling',
-    'Walking',
+    '😂 Laughing',
+    '😭 Crying',
+    '🤗 Hugging',
+    '🎤 Singing',
+    '🗣️ Talking',
+    '💋 Kissing',
+    '🏃 Running',
+    '🤸 Jumping',
+    '🤝 Handshake',
+    '💃 Dancing',
+    '😊 Smiling',
+    '🚶 Walking',
   ];
   final List<String> backgroundImages = [
-    'wood.jpg',
-    'window.jpg',
-    'city.jpg',
-    'marble.jpg',
-    'plants.jpg',
-    'kitchen.jpg',
-    'gradient.jpg',
-    'tulips.jpg',
-    'grey.jpg',
+    'assets/photos/Wooden.png',
+    'assets/photos/Wedding.png',
+    'assets/photos/Neon.png',
+    'assets/photos/Natural.png',
+    'assets/photos/Marble.png',
+    'assets/photos/Living.png',
+    'assets/photos/Kitchen.png',
+    'assets/photos/greywall.png',
+    'assets/photos/Generic.png',
   ];
   final List<String> models = ['Kling', 'Minimax', 'Veo2'];
+  final TextEditingController _descriptionController = TextEditingController();
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    // Initialize Window for responsive sizing
     Window().adaptDeviceScreenSize(view: WidgetsBinding.instance.platformDispatcher.views.first);
     _controller = AnimationController(
       duration: const Duration(seconds: 1),
@@ -61,50 +62,47 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
   @override
   void dispose() {
     _controller.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    // Set the theme for AppColors
 
     return Theme(
       data: ThemeData(
-        brightness: isDarkMode ? Brightness.dark : Brightness.light,
-        scaffoldBackgroundColor: isDarkMode ? AppColors.darkNeutral100 : AppColors.neutral10,
+        // Use system brightness
+        brightness: MediaQuery.of(context).platformBrightness,
+        scaffoldBackgroundColor: AppColors.neutral10,
         appBarTheme: AppBarTheme(
-          backgroundColor: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral20,
-          foregroundColor: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+          backgroundColor: AppColors.neutral10,
+          foregroundColor: AppColors.neutral100,
           elevation: 0,
-        ),
-        cardColor: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral20,
-        textTheme: TextTheme(
-          bodyMedium: AppTextStyles.bodyRegular.copyWith(
-            color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-            fontSize: Window.getFontSize(14),
-          ),
+          shadowColor: AppColors.neutral30.withOpacity(0.3),
         ),
         inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: isDarkMode ? AppColors.darkNeutral70 : AppColors.neutral30,
-          hintStyle: AppTextStyles.subtitleRegular.copyWith(
-            color: isDarkMode ? AppColors.darkNeutral10.withOpacity(0.5) : AppColors.neutral100.withOpacity(0.5),
-            fontSize: Window.getFontSize(14),
-          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: isDarkMode ? AppColors.darkNeutral50 : AppColors.neutral50),
+            borderSide: BorderSide(color: AppColors.neutral30),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: isDarkMode ? AppColors.darkNeutral50 : AppColors.neutral50),
+            borderSide: BorderSide(color: AppColors.neutral30),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
+          ),
+          filled: true,
+          fillColor: AppColors.neutral20.withOpacity(0.8),
+          labelStyle: AppTextStyles.captionRegular.copyWith(
+            fontSize: Window.getFontSize(14),
+            color: AppColors.neutral50,
+          ),
+          hintStyle: AppTextStyles.bodyRegular.copyWith(
+            fontSize: Window.getFontSize(14),
+            color: AppColors.neutral50,
           ),
         ),
       ),
@@ -112,156 +110,79 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
         appBar: AppBar(
           title: Text(
             'Image to Video',
-            style: AppTextStyles.heading4Bold.copyWith(
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+            style: AppTextStyles.titleBold.copyWith(
               fontSize: Window.getFontSize(20),
+              color: AppColors.neutral100,
+            ),
+          ),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.primary10, AppColors.neutral10],
+              ),
             ),
           ),
         ),
         body: FadeTransition(
           opacity: _fadeAnimation,
           child: SingleChildScrollView(
-            padding: Window.getPadding(all: 20),
+            padding: Window.getSymmetricPadding(horizontal: 20, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Image Upload Section
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
+                Text(
+                  'Upload Image',
+                  style: AppTextStyles.titleBold.copyWith(
+                    fontSize: Window.getFontSize(18),
+                    color: AppColors.neutral100,
                   ),
-                  child: Padding(
-                    padding: Window.getPadding(all: 16),
-                    child: Column(
-                      children: [
-                        Container(
-                          height: Window.getVerticalSize(150) ?? 150,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: isDarkMode ? AppColors.darkNeutral70 : AppColors.neutral30,
-                            borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-                            border: Border.all(
-                              color: isDarkMode ? AppColors.darkNeutral50.withOpacity(0.3) : AppColors.neutral50.withOpacity(0.3),
-                              width: 2,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.image,
-                            color: isDarkMode ? AppColors.darkNeutral10.withOpacity(0.7) : AppColors.neutral100.withOpacity(0.7),
-                            size: 50,
-                          ),
-                        ),
-                        SizedBox(height: Window.getVerticalSize(12) ?? 12),
-                        ScaleTransitionButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Image upload clicked')),
-                            );
-                          },
-                          child: Container(
-                            padding: Window.getSymmetricPadding(horizontal: 20, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isDarkMode ? AppColors.darkNeutral50 : AppColors.neutral70,
-                              borderRadius: BorderRadius.circular(Window.getRadiusSize(30)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.upload,
-                                  color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral10,
-                                  size: Window.getSize(20),
-                                ),
-                                SizedBox(width: Window.getHorizontalSize(8) ?? 8),
-                                Text(
-                                  'Upload Image',
-                                  style: AppTextStyles.subtitleBold.copyWith(
-                                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral10,
-                                    fontSize: Window.getFontSize(16) ?? 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: Window.getVerticalSize(12) ?? 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ScaleTransitionButton(
-                              onPressed: () {},
-                              child: Container(
-                                padding: Window.getSymmetricPadding(horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: isDarkMode ? AppColors.darkNeutral60 : AppColors.neutral40,
-                                  borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
-                                ),
-                                child: Text(
-                                  'Image 1',
-                                  style: AppTextStyles.subtitleRegular.copyWith(
-                                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                                    fontSize: Window.getFontSize(14) ?? 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            ScaleTransitionButton(
-                              onPressed: () {},
-                              child: Container(
-                                padding: Window.getSymmetricPadding(horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: isDarkMode ? AppColors.darkNeutral60 : AppColors.neutral40,
-                                  borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
-                                ),
-                                child: Text(
-                                  'Image 2',
-                                  style: AppTextStyles.subtitleRegular.copyWith(
-                                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                                    fontSize: Window.getFontSize(14) ?? 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: Window.getVerticalSize(12) ?? 12),
-                        ScaleTransitionButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Process Images clicked')),
-                            );
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: Window.getSymmetricPadding(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isDarkMode ? AppColors.darkNeutral50 : AppColors.neutral70,
-                              borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Process Images',
-                                style: AppTextStyles.subtitleBold.copyWith(
-                                  color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral10,
-                                  fontSize: Window.getFontSize(16) ?? 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                ),
+                SizedBox(height: Window.getVerticalSize(12)),
+                Container(
+                  height: Window.getVerticalSize(200),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.neutral20.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.neutral30.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(color: AppColors.neutral30.withOpacity(0.5)),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.image,
+                      color: AppColors.neutral50,
+                      size: 50,
                     ),
                   ),
+                ),
+                SizedBox(height: Window.getVerticalSize(16)),
+                CustomActionButton(
+                  name: 'Upload Image',
+                  isFormFilled: true,
+                  isLoaded: true,
+                  onTap: (startLoading, stopLoading, btnState) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Image upload clicked')),
+                    );
+                  },
                 ),
                 SizedBox(height: Window.getVerticalSize(24)),
 
                 // Expression Selection
                 Text(
                   'Choose an Expression',
-                  style: AppTextStyles.heading5Bold.copyWith(
-                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                    fontSize: Window.getFontSize(20),
+                  style: AppTextStyles.titleBold.copyWith(
+                    fontSize: Window.getFontSize(18),
+                    color: AppColors.neutral100,
                   ),
                 ),
                 SizedBox(height: Window.getVerticalSize(12)),
@@ -275,8 +196,8 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                       final isSelected = selectedExpression == expression;
                       return Padding(
                         padding: Window.getPadding(right: 12),
-                        child: ScaleTransitionButton(
-                          onPressed: () {
+                        child: GestureDetector(
+                          onTap: () {
                             setState(() {
                               selectedExpression = expression;
                             });
@@ -284,32 +205,22 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                           child: Container(
                             padding: Window.getSymmetricPadding(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected
-                                  ? (isDarkMode ? AppColors.darkNeutral50 : AppColors.neutral70)
-                                  : (isDarkMode ? AppColors.darkNeutral60 : AppColors.neutral40),
+                              color: isSelected ? AppColors.primary90 : AppColors.neutral30,
                               borderRadius: BorderRadius.circular(Window.getRadiusSize(20)),
-                              boxShadow: isSelected
-                                  ? [
+                              boxShadow: [
                                 BoxShadow(
-                                  color: isDarkMode
-                                      ? AppColors.darkNeutral50.withOpacity(0.3)
-                                      : AppColors.neutral50.withOpacity(0.3),
+                                  color: AppColors.neutral30.withOpacity(0.2),
                                   blurRadius: 8,
-                                  spreadRadius: 2,
+                                  offset: const Offset(0, 4),
                                 ),
-                              ]
-                                  : [],
+                              ],
                             ),
                             child: Center(
                               child: Text(
                                 expression,
                                 style: AppTextStyles.subtitleSemiBold.copyWith(
-                                  color: isSelected
-                                      ? (isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral10)
-                                      : (isDarkMode
-                                      ? AppColors.darkNeutral10.withOpacity(0.7)
-                                      : AppColors.neutral100.withOpacity(0.7)),
-                                  fontSize: Window.getFontSize(14) ?? 14,
+                                  color: isSelected ? AppColors.neutral10 : AppColors.neutral100,
+                                  fontSize: Window.getFontSize(14),
                                 ),
                               ),
                             ),
@@ -324,9 +235,9 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                 // Background Selection
                 Text(
                   'Choose Background',
-                  style: AppTextStyles.heading5Bold.copyWith(
-                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                    fontSize: Window.getFontSize(20),
+                  style: AppTextStyles.titleBold.copyWith(
+                    fontSize: Window.getFontSize(18),
+                    color: AppColors.neutral100,
                   ),
                 ),
                 SizedBox(height: Window.getVerticalSize(12)),
@@ -341,46 +252,42 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                   ),
                   itemCount: backgroundImages.length,
                   itemBuilder: (context, index) {
-                    final background = backgroundImages[index];
-                    final isSelected = selectedBackground == background;
+                    final imagePath = backgroundImages[index];
+                    final isSelected = selectedBackground == imagePath;
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          selectedBackground = background;
+                          selectedBackground = imagePath;
                         });
                       },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
+                      child: Container(
                         decoration: BoxDecoration(
-                          color: isDarkMode ? AppColors.darkNeutral60 : AppColors.neutral40,
                           borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-                          border: isSelected
-                              ? Border.all(
-                            color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                            width: 3,
-                          )
-                              : null,
-                          boxShadow: isSelected
-                              ? [
-                            BoxShadow(
-                              color: isDarkMode
-                                  ? AppColors.darkNeutral50.withOpacity(0.3)
-                                  : AppColors.neutral50.withOpacity(0.3),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                              : [],
-                        ),
-                        child: Center(
-                          child: Text(
-                            background.split('.').first,
-                            style: AppTextStyles.subtitleRegular.copyWith(
-                              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                              fontSize: Window.getFontSize(12) ?? 12,
-                            ),
-                            textAlign: TextAlign.center,
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : AppColors.neutral30.withOpacity(0.5),
+                            width: isSelected ? 3 : 1,
                           ),
+                        ),
+                        clipBehavior: Clip.hardEdge,
+                        child: Stack(
+                          children: [
+                            Image.asset(
+                              imagePath,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                            if (isSelected)
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: Icon(
+                                  Icons.check_circle,
+                                  color: AppColors.primary,
+                                  size: 20,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     );
@@ -389,88 +296,211 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                 SizedBox(height: Window.getVerticalSize(24)),
 
                 // Description Input
+                Text(
+                  'Describe Your Video',
+                  style: AppTextStyles.titleBold.copyWith(
+                    fontSize: Window.getFontSize(18),
+                    color: AppColors.neutral100,
+                  ),
+                ),
+                SizedBox(height: Window.getVerticalSize(12)),
                 TextField(
+                  controller: _descriptionController,
+                  maxLines: 4,
+                  style: AppTextStyles.bodyRegular.copyWith(
+                    fontSize: Window.getFontSize(16),
+                    color: AppColors.neutral100,
+                  ),
                   decoration: InputDecoration(
-                    hintText: 'Describe the video you want to generate...',
+                    hintText: 'e.g., A character dancing in a vibrant city',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
                     ),
-                  ),
-                  maxLines: 4,
-                  style: AppTextStyles.subtitleRegular.copyWith(
-                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                    fontSize: Window.getFontSize(14) ?? 14,
                   ),
                 ),
                 SizedBox(height: Window.getVerticalSize(24)),
 
                 // Model Selection
-                Container(
-                  padding: Window.getSymmetricPadding(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: isDarkMode ? AppColors.darkNeutral50 : AppColors.neutral70,
-                    borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-                  ),
-                  child: DropdownButton<String>(
-                    value: selectedModel,
-                    isExpanded: true,
-                    underline: const SizedBox(),
-                    dropdownColor: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral20,
-                    items: models.map((model) {
-                      return DropdownMenuItem(
-                        value: model,
-                        child: Text(
-                          model,
-                          style: AppTextStyles.subtitleSemiBold.copyWith(
-                            color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                            fontSize: Window.getFontSize(16),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedModel = value!;
-                      });
-                    },
-                  ),
+                _buildSelector(
+                  label: 'Model',
+                  value: selectedModel,
+                  options: models,
+                  onSelected: (value) {
+                    setState(() {
+                      selectedModel = value;
+                    });
+                  },
                 ),
                 SizedBox(height: Window.getVerticalSize(24)),
 
                 // Generate Video Button
-                ScaleTransitionButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Generate Video clicked')),
-                    );
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: Window.getSymmetricPadding(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? AppColors.darkNeutral50 : AppColors.neutral70,
-                      borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDarkMode ? AppColors.darkNeutral50.withOpacity(0.3) : AppColors.neutral50.withOpacity(0.3),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Generate Video',
-                        style: AppTextStyles.subtitleBold.copyWith(
-                          color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral10,
-                          fontSize: Window.getFontSize(18),
-                        ),
-                      ),
-                    ),
+                Center(
+                  child: CustomActionButton(
+                    name: 'Generate Video',
+                    isFormFilled: _descriptionController.text.trim().isNotEmpty,
+                    isLoaded: true,
+                    onTap: (startLoading, stopLoading, btnState) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Generate Video clicked')),
+                      );
+                    },
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelector({
+    required String label,
+    required String value,
+    required List<String> options,
+    required Function(String) onSelected,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.captionBold.copyWith(
+            fontSize: Window.getFontSize(14),
+            color: AppColors.neutral100,
+          ),
+        ),
+        SizedBox(height: Window.getVerticalSize(8)),
+        GestureDetector(
+          onTap: () {
+            _showBottomSheetSelector(
+              context: context,
+              title: 'Select $label',
+              options: options,
+              selectedValue: value,
+              onSelected: onSelected,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
+              border: Border.all(color: AppColors.neutral30),
+              color: AppColors.neutral20.withOpacity(0.8),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neutral30.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  value,
+                  style: AppTextStyles.bodyRegular.copyWith(
+                    fontSize: Window.getFontSize(16),
+                    color: AppColors.neutral100,
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: AppColors.neutral50,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showBottomSheetSelector({
+    required BuildContext context,
+    required String title,
+    required List<String> options,
+    required String selectedValue,
+    required Function(String) onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.neutral10,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  title,
+                  style: AppTextStyles.titleBold.copyWith(
+                    fontSize: Window.getFontSize(18),
+                    color: AppColors.neutral100,
+                  ),
+                ),
+              ),
+              Divider(color: AppColors.neutral30.withOpacity(0.5)),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: options.map((option) {
+                    return ListTile(
+                      title: Text(
+                        option,
+                        style: AppTextStyles.bodyRegular.copyWith(
+                          fontSize: Window.getFontSize(16),
+                          color: option == selectedValue ? AppColors.primary : AppColors.neutral100,
+                        ),
+                      ),
+                      trailing: option == selectedValue
+                          ? Icon(Icons.check, color: AppColors.primary)
+                          : null,
+                      onTap: () {
+                        onSelected(option);
+                        Navigator.pop(context);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              SizedBox(height: Window.getVerticalSize(16)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSmallButton({
+    required String text,
+    required VoidCallback onPressed,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: Window.getSymmetricPadding(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.neutral20,
+          borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.neutral30.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Text(
+          text,
+          style: AppTextStyles.subtitleRegular.copyWith(
+            color: AppColors.neutral100,
+            fontSize: Window.getFontSize(14),
           ),
         ),
       ),

@@ -9,6 +9,15 @@ import 'package:vidgencraft/core/exceptions/custom_exceptions.dart';
 import '../../core/constants/preference_string.dart';
 import '../../core/themes/bloc/theme_bloc.dart';
 import '../../core/utils/secure_local_storage.dart';
+import '../../features/auth/data/datasources/auth_client.dart';
+import '../../features/auth/data/respositories/auth_repository.dart';
+import '../../features/auth/domain/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/usecases/login_usecase.dart';
+import '../../features/auth/domain/usecases/reset_password_usecase.dart';
+import '../../features/auth/domain/usecases/send_otp_usecase.dart';
+import '../../features/auth/domain/usecases/verify_otp_usecase.dart';
+import '../../features/auth/domain/usecases/verify_token_usecase.dart';
+import '../../features/auth/presentation/bloc/auth_cubit.dart';
 import '../routes/app_router.dart';
 
 final sl = GetIt.instance;
@@ -73,6 +82,29 @@ Future<void> setupServiceLocator() async {
   ]);
 
   sl.registerSingleton<Dio>(dio);
+
+
+  sl.registerLazySingleton(() => AuthClient(sl<Dio>()));
+
+  // Repository
+  sl.registerLazySingleton<AuthRepository>(
+          () => AuthRepositoryImpl(sl()));
+
+  // Use Cases
+  sl.registerLazySingleton(() => SendOtpUsecase(sl()));
+  sl.registerLazySingleton(() => LoginUsecase(sl()));
+  sl.registerLazySingleton(() => ResetPasswordUsecase(sl()));
+  sl.registerLazySingleton(() => VerifyOtpUsecase(sl()));
+  sl.registerLazySingleton(() => VerifyTokenUsecase(sl()));
+
+  // Cubit
+  sl.registerFactory(() => AuthCubit(
+    sl(),
+    sl(),
+    sl(),
+    sl(),
+    sl(),
+  ));
 
   // Utility Functions
   sl.registerLazySingleton(() => getAuthData);

@@ -111,44 +111,45 @@ class CustomActionButton extends StatelessWidget {
     // Calculate button height, ensuring a minimum to avoid text clipping
     final double effectiveHeight = buttonHeight ?? Window.getVerticalSize(50); // Reduced from 50 to 42
 
-    return Container(
-      decoration: buttonDecoration,
-      child: ArgonButton(
-        height: effectiveHeight,
-        width: buttonWidth ??
-            Window.getHorizontalSize(MediaQuery.of(context).size.width),
-        loader: Transform.scale(
-          scale: shouldAnimate ? 0.7 : 0.9, // Adjusted scale for smaller loader
-          child: Container(
-            height: Window.getVerticalSize(32), // Reduced loader size
-            width: Window.getHorizontalSize(32),
-            padding: const EdgeInsets.all(1),
-            child: SpinKitDoubleBounce(color: loaderColor),
+    return Center( // 👈 This is the fix!
+      child: Container(
+        decoration: buttonDecoration,
+        child: ArgonButton(
+          height: effectiveHeight,
+          width: buttonWidth ?? Window.getHorizontalSize(MediaQuery.of(context).size.width),
+          loader: Transform.scale(
+            scale: shouldAnimate ? 0.7 : 0.9,
+            child: Container(
+              height: Window.getVerticalSize(32),
+              width: Window.getHorizontalSize(32),
+              padding: const EdgeInsets.all(1),
+              child: SpinKitDoubleBounce(color: loaderColor),
+            ),
           ),
-        ),
-        onTap: onTap,
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (leading != null)
-                ColorFiltered(
-                  colorFilter: ColorFilter.mode(textColor, BlendMode.srcIn),
-                  child: leading,
+          onTap: onTap,
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (leading != null)
+                  ColorFiltered(
+                    colorFilter: ColorFilter.mode(textColor, BlendMode.srcIn),
+                    child: leading,
+                  ),
+                if (leading != null)
+                  SizedBox(width: Window.getHorizontalSize(8)),
+                Text(
+                  name,
+                  style: AppTextStyles.subtitleSemiBold.copyWith(
+                    color: textColor,
+                    fontSize: Window.getFontSize(14),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              if (leading != null)
-                SizedBox(width: Window.getHorizontalSize(8)), // Slightly reduced spacing
-              Text(
-                name,
-                style: AppTextStyles.subtitleSemiBold.copyWith(
-                  color: textColor,
-                  fontSize: Window.getFontSize(14), // Reduced font size to fit
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis, // Prevent text overflow
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

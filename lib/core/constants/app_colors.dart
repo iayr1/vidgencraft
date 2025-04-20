@@ -113,7 +113,7 @@ class AppColors {
   static  Color darkError10 = Color(0xFFFDF0FA).withOpacity(0.9);
 
   // Convenience getters for default shades
-  static Color get primary => primary50;
+  static Color get primary => primary90;
   static Color get secondaryPurple => secondaryPurple50;
   static Color get secondaryGreen => secondaryGreen50;
   static Color get neutral => neutral50;
@@ -124,4 +124,12 @@ class AppColors {
   static Color get darkSecondaryGreen => darkSecondaryGreen50;
   static Color get darkNeutral => darkNeutral50;
   static Color get darkError => darkError50;
+
+
+
+  static const lightHeavenStart = Color(0xFFFCE4EC);
+  static const lightHeavenEnd = Color(0xFFE1BEE7);
+  static const darkHeavenStart = Color(0xFF1A237E);
+  static const darkHeavenEnd = Color(0xFF311B92);
+  static const accentGlow = Color(0xFF00E5FF);
 }

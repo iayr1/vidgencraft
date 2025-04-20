@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_textstyles.dart';
@@ -17,32 +18,152 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
   String _selectedStyle = 'NONE (Default)';
   final TextEditingController _promptController = TextEditingController();
   final TextEditingController _seedController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+  String? _generatedImageUrl; // Store the generated image URL
 
+  final Dio _dio = Dio(BaseOptions(
+    baseUrl: 'http://192.168.218.191:8001',
+    headers: {'Content-Type': 'application/json'},
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+
+  @override
+  void initState() {
+    super.initState();
+    _dio.interceptors.add(LogInterceptor(
+      request: true,
+      requestHeader: true,
+      requestBody: true,
+      responseHeader: true,
+      responseBody: true,
+      error: true,
+      logPrint: (object) => debugPrint(object.toString()),
+    ));
+  }
+
+  @override
+  void dispose() {
+    _promptController.dispose();
+    _seedController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _generateImage() async {
+    if (_promptController.text.trim().isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter a prompt';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _generatedImageUrl = null;
+    });
+
+    try {
+      debugPrint('Request URL: http://192.168.218.191:8001/generate_ai_background');
+      debugPrint('Request Data: ${{'prompt': _promptController.text}}');
+
+      final response = await _dio.post(
+        '/generate_ai_background',
+        data: {
+          'prompt': _promptController.text,
+          'output_type': _selectedOutputType.toLowerCase(),
+          'dimension': _selectedDimension.split(' ')[0], // e.g., "1:1"
+          'style': _selectedStyle == 'NONE (Default)' ? null : _selectedStyle.toLowerCase(),
+          'seed': _seedController.text.isNotEmpty ? int.tryParse(_seedController.text) : null,
+        },
+      );
+
+      final result = response.data;
+
+      if (response.statusCode == 200 && result['success'] == true) {
+        setState(() {
+          _generatedImageUrl = result['image_url']; // Adjust based on actual response
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = result['error'] ?? 'Failed to generate image';
+          _isLoading = false;
+        });
+      }
+    } on DioException catch (e) {
+      setState(() {
+        _isLoading = false;
+        switch (e.type) {
+          case DioExceptionType.connectionTimeout:
+            _errorMessage = 'Connection timeout. Please check your internet connection.';
+            break;
+          case DioExceptionType.sendTimeout:
+            _errorMessage = 'Request timeout. Unable to send data to the server.';
+            break;
+          case DioExceptionType.receiveTimeout:
+            _errorMessage = 'Response timeout. Server took too long to respond.';
+            break;
+          case DioExceptionType.badResponse:
+            _errorMessage = 'Server error: ${e.response?.statusCode} ${e.response?.data['error'] ?? 'Unknown error'}';
+            break;
+          case DioExceptionType.cancel:
+            _errorMessage = 'Request was cancelled.';
+            break;
+          case DioExceptionType.connectionError:
+            _errorMessage = 'Connection error. Unable to reach the server.';
+            break;
+          case DioExceptionType.badCertificate:
+            _errorMessage = 'Invalid SSL certificate.';
+            break;
+          case DioExceptionType.unknown:
+          default:
+            _errorMessage = 'Network error: ${e.message}';
+            break;
+        }
+      });
+
+      debugPrint('DioException: ${e.message}');
+      debugPrint('Error Type: ${e.type}');
+      debugPrint('Response: ${e.response?.toString()}');
+      debugPrint('Request URL: ${e.requestOptions.uri}');
+      debugPrint('Request Data: ${e.requestOptions.data}');
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Unexpected error: $e';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Theme(
-      // Use light theme with AppColors for consistency
       data: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: AppColors.neutral10,
         appBarTheme: AppBarTheme(
           backgroundColor: AppColors.neutral10,
           foregroundColor: AppColors.neutral100,
-          elevation: 1,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.neutral10,
-          ),
+          elevation: 0,
+          shadowColor: AppColors.neutral30.withOpacity(0.3),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
+            borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
+            borderSide: BorderSide(color: AppColors.neutral30),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
+            borderSide: BorderSide(color: AppColors.neutral30),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           filled: true,
-          fillColor: AppColors.neutral20,
+          fillColor: AppColors.neutral20.withOpacity(0.8),
           labelStyle: AppTextStyles.captionRegular.copyWith(
             fontSize: Window.getFontSize(14),
             color: AppColors.neutral50,
@@ -58,247 +179,222 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
           title: Text(
             'Text to Image',
             style: AppTextStyles.titleBold.copyWith(
-              fontSize: Window.getFontSize(18),
+              fontSize: Window.getFontSize(20),
               color: AppColors.neutral100,
+            ),
+          ),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.primary10, AppColors.neutral10],
+              ),
             ),
           ),
         ),
         body: SafeArea(
           child: Padding(
-            padding: Window.getPadding(all: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Enter your prompt',
-                  style: AppTextStyles.titleBold.copyWith(
-                    fontSize: Window.getFontSize(18),
-                    color: AppColors.neutral100,
+            padding: Window.getSymmetricPadding(horizontal: 20, vertical: 16),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Prompt Input
+                  Text(
+                    'Describe Your Vision',
+                    style: AppTextStyles.titleBold.copyWith(
+                      fontSize: Window.getFontSize(18),
+                      color: AppColors.neutral100,
+                    ),
                   ),
-                ),
-                SizedBox(height: Window.getVerticalSize(8)),
-                TextField(
-                  controller: _promptController,
-                  maxLines: 4,
-                  style: AppTextStyles.bodyRegular.copyWith(
-                    fontSize: Window.getFontSize(14),
-                    color: AppColors.neutral100,
+                  SizedBox(height: Window.getVerticalSize(12)),
+                  TextField(
+                    controller: _promptController,
+                    maxLines: 4,
+                    style: AppTextStyles.bodyRegular.copyWith(
+                      fontSize: Window.getFontSize(16),
+                      color: AppColors.neutral100,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'e.g., A serene beach at sunset with vibrant colors',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
+                      ),
+                    ),
                   ),
-                  decoration: InputDecoration(
-                    hintText: 'Describe the image you want to generate...',
-                    hintStyle: AppTextStyles.bodyRegular.copyWith(
+                  SizedBox(height: Window.getVerticalSize(20)),
+
+                  // Output Type and Dimensions
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildSelector(
+                          label: 'Output Type',
+                          value: _selectedOutputType,
+                          options: ['JPEG', 'PNG'],
+                          onSelected: (value) {
+                            setState(() {
+                              _selectedOutputType = value;
+                            });
+                          },
+                        ),
+                      ),
+                      SizedBox(width: Window.getHorizontalSize(16)),
+                      Expanded(
+                        child: _buildSelector(
+                          label: 'Dimensions',
+                          value: _selectedDimension,
+                          options: ['1:1 (Square)', '11:9 (Portrait)', '16:9 (Landscape)'],
+                          onSelected: (value) {
+                            setState(() {
+                              _selectedDimension = value;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Window.getVerticalSize(20)),
+
+                  // Style Selector
+                  _buildSelector(
+                    label: 'Style',
+                    value: _selectedStyle,
+                    options: [
+                      'NONE (Default)',
+                      'Pixar',
+                      'Ghibli',
+                      'Disney',
+                      'Realistic',
+                      'Anime',
+                      'Watercolor',
+                      'Oil Painting',
+                      'Sketch',
+                      'Comic',
+                      '3D Render',
+                      'Cyberpunk',
+                      'Fantasy',
+                      'Custom Style...'
+                    ],
+                    onSelected: (value) {
+                      setState(() {
+                        _selectedStyle = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: Window.getVerticalSize(20)),
+
+                  // Seed Input
+                  Text(
+                    'Seed (Optional)',
+                    style: AppTextStyles.captionBold.copyWith(
                       fontSize: Window.getFontSize(14),
-                      color: AppColors.neutral50,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
+                      color: AppColors.neutral100,
                     ),
                   ),
-                ),
-                SizedBox(height: Window.getVerticalSize(16)),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Output Type',
-                            style: AppTextStyles.captionBold.copyWith(
-                              fontSize: Window.getFontSize(14),
-                              color: AppColors.neutral100,
-                            ),
-                          ),
-                          SizedBox(height: Window.getVerticalSize(4)),
-                          GestureDetector(
-                            onTap: () {
-                              _showBottomSheetSelector(
-                                context: context,
-                                title: 'Select Output Type',
-                                options: ['JPEG', 'PNG'],
-                                selectedValue: _selectedOutputType,
-                                onSelected: (value) {
-                                  setState(() {
-                                    _selectedOutputType = value;
-                                  });
-                                },
-                              );
-                            },
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: 'Output Type',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
-                                ),
-                              ),
-                              child: Text(
-                                _selectedOutputType,
-                                style: AppTextStyles.bodyRegular.copyWith(
-                                  fontSize: Window.getFontSize(14),
-                                  color: AppColors.neutral100,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                  SizedBox(height: Window.getVerticalSize(8)),
+                  TextField(
+                    controller: _seedController,
+                    keyboardType: TextInputType.number,
+                    style: AppTextStyles.bodyRegular.copyWith(
+                      fontSize: Window.getFontSize(16),
+                      color: AppColors.neutral100,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Enter seed for consistent results',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
                       ),
                     ),
-                    SizedBox(width: Window.getHorizontalSize(16)),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Dimensions',
-                            style: AppTextStyles.captionBold.copyWith(
-                              fontSize: Window.getFontSize(14),
-                              color: AppColors.neutral100,
-                            ),
-                          ),
-                          SizedBox(height: Window.getVerticalSize(4)),
-                          DropdownButtonFormField<String>(
-                            value: _selectedDimension,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
-                              ),
-                            ),
-                            dropdownColor: AppColors.neutral10,
-                            items: [
-                              '1:1 (Square)',
-                              '11:9 (Portrait)',
-                              '16:9 (Landscape)',
-                            ]
-                                .map((dim) => DropdownMenuItem(
-                              value: dim,
-                              child: Text(
-                                dim,
-                                style: AppTextStyles.bodyRegular.copyWith(
-                                  fontSize: Window.getFontSize(14),
-                                  color: AppColors.neutral100,
-                                ),
-                              ),
-                            ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedDimension = value!;
-                              });
-                            },
-                          ),
-                        ],
+                  ),
+                  SizedBox(height: Window.getVerticalSize(24)),
+
+                  // Error Message
+                  if (_errorMessage != null)
+                    Padding(
+                      padding: Window.getPadding(bottom: 16),
+                      child: Text(
+                        _errorMessage!,
+                        style: AppTextStyles.bodyRegular.copyWith(
+                          fontSize: Window.getFontSize(14),
+                          color: AppColors.error60,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                SizedBox(height: Window.getVerticalSize(16)),
-                Text(
-                  'Style',
-                  style: AppTextStyles.captionBold.copyWith(
-                    fontSize: Window.getFontSize(14),
-                    color: AppColors.neutral100,
-                  ),
-                ),
-                SizedBox(height: Window.getVerticalSize(4)),
-                DropdownButtonFormField<String>(
-                  value: _selectedStyle,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
-                    ),
-                  ),
-                  dropdownColor: AppColors.neutral10,
-                  items: [
-                    'NONE (Default)',
-                    'Pixar',
-                    'Ghibli',
-                    'Disney',
-                    'Realistic',
-                    'Anime',
-                    'Watercolor',
-                    'Oil Painting',
-                    'Sketch',
-                    'Comic',
-                    '3D Render',
-                    'Cyberpunk',
-                    'Fantasy',
-                    'Custom Style...'
-                  ]
-                      .map((style) => DropdownMenuItem(
-                    value: style,
-                    child: Text(
-                      style,
-                      style: AppTextStyles.bodyRegular.copyWith(
-                        fontSize: Window.getFontSize(14),
-                        color: AppColors.neutral100,
-                      ),
-                    ),
-                  ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStyle = value!;
-                    });
-                  },
-                ),
-                SizedBox(height: Window.getVerticalSize(16)),
-                Text(
-                  'Seed (Optional)',
-                  style: AppTextStyles.captionBold.copyWith(
-                    fontSize: Window.getFontSize(14),
-                    color: AppColors.neutral100,
-                  ),
-                ),
-                SizedBox(height: Window.getVerticalSize(4)),
-                TextField(
-                  controller: _seedController,
-                  style: AppTextStyles.bodyRegular.copyWith(
-                    fontSize: Window.getFontSize(14),
-                    color: AppColors.neutral100,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Leave empty for random results...',
-                    hintStyle: AppTextStyles.bodyRegular.copyWith(
-                      fontSize: Window.getFontSize(14),
-                      color: AppColors.neutral50,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
-                    ),
-                  ),
-                ),
-                SizedBox(height: Window.getVerticalSize(16)),
-                Center(
-                  child: CustomActionButton(
-                    name: 'Generate Image',
-                    isFormFilled: _promptController.text.trim().isNotEmpty, // check if form is filled
-                    onTap: (startLoading, stopLoading, btnState) async {
+
+                  // Generate Button
+                  Center(
+                    child: CustomActionButton(
+                      name: 'Generate Image',
+                      isFormFilled: _promptController.text.trim().isNotEmpty,
+                      isLoaded: !_isLoading,
+                      onTap: (startLoading, stopLoading, btnState) async {
                         startLoading();
-                        // TODO: Implement image generation logic here
-                        await Future.delayed(const Duration(seconds: 2)); // Simulate a delay
+                        await _generateImage();
                         stopLoading();
-                      }
-                  ),
-                ),
-                SizedBox(height: Window.getVerticalSize(16)),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.neutral20,
-                      borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
+                      },
                     ),
-                    child: Center(
+                  ),
+                  SizedBox(height: Window.getVerticalSize(24)),
+
+                  // Image Display Area
+                  Container(
+                    height: Window.getVerticalSize(300),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.neutral20.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.neutral30.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: AppColors.neutral30.withOpacity(0.5)),
+                    ),
+                    child: _generatedImageUrl != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
+                      child: Image.network(
+                        _generatedImageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              'Failed to load image',
+                              style: AppTextStyles.bodyRegular.copyWith(
+                                fontSize: Window.getFontSize(14),
+                                color: AppColors.error60,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                        : Center(
                       child: Text(
                         'Generated image will appear here',
                         style: AppTextStyles.bodyRegular.copyWith(
-                          fontSize: Window.getFontSize(14),
+                          fontSize: Window.getFontSize(16),
                           color: AppColors.neutral50,
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -306,6 +402,61 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
     );
   }
 
+  Widget _buildSelector({
+    required String label,
+    required String value,
+    required List<String> options,
+    required Function(String) onSelected,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.captionBold.copyWith(
+            fontSize: Window.getFontSize(14),
+            color: AppColors.neutral100,
+          ),
+        ),
+        SizedBox(height: Window.getVerticalSize(8)),
+        GestureDetector(
+          onTap: () {
+            _showBottomSheetSelector(
+              context: context,
+              title: 'Select $label',
+              options: options,
+              selectedValue: value,
+              onSelected: onSelected,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
+              border: Border.all(color: AppColors.neutral30),
+              color: AppColors.neutral20.withOpacity(0.8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  value,
+                  style: AppTextStyles.bodyRegular.copyWith(
+                    fontSize: Window.getFontSize(16),
+                    color: AppColors.neutral100,
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: AppColors.neutral50,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   void _showBottomSheetSelector({
     required BuildContext context,
@@ -316,9 +467,9 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
   }) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.neutral10,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
         return SafeArea(
@@ -326,38 +477,44 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
                   title,
                   style: AppTextStyles.titleBold.copyWith(
-                    fontSize: Window.getFontSize(16),
+                    fontSize: Window.getFontSize(18),
                     color: AppColors.neutral100,
                   ),
                 ),
               ),
-              ...options.map((option) {
-                return ListTile(
-                  title: Text(
-                    option,
-                    style: AppTextStyles.bodyRegular.copyWith(
-                      fontSize: Window.getFontSize(14),
-                      color: option == selectedValue
-                          ? AppColors.primary
-                          : AppColors.neutral100,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    onSelected(option);
-                  },
-                );
-              }).toList(),
-              const SizedBox(height: 16),
+              Divider(color: AppColors.neutral30.withOpacity(0.5)),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: options.map((option) {
+                    return ListTile(
+                      title: Text(
+                        option,
+                        style: AppTextStyles.bodyRegular.copyWith(
+                          fontSize: Window.getFontSize(16),
+                          color: option == selectedValue ? AppColors.primary : AppColors.neutral100,
+                        ),
+                      ),
+                      trailing: option == selectedValue
+                          ? Icon(Icons.check, color: AppColors.primary)
+                          : null,
+                      onTap: () {
+                        onSelected(option);
+                        Navigator.pop(context);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              SizedBox(height: Window.getVerticalSize(16)),
             ],
           ),
         );
       },
     );
   }
-
 }
