@@ -4,22 +4,22 @@
 
 import 'dart:convert';
 
-VerifyOtpRequestModel verifyOtpRequestModelFromJson(String str) => VerifyOtpRequestModel.fromJson(json.decode(str));
+VerifyOtpResponseModel verifyOtpResponseModelFromJson(String str) => VerifyOtpResponseModel.fromJson(json.decode(str));
 
-String verifyOtpRequestModelToJson(VerifyOtpRequestModel data) => json.encode(data.toJson());
+String verifyOtpResponseModelToJson(VerifyOtpResponseModel data) => json.encode(data.toJson());
 
-class VerifyOtpRequestModel {
+class VerifyOtpResponseModel {
   String? status;
   String? message;
   String? resetToken;
 
-  VerifyOtpRequestModel({
+  VerifyOtpResponseModel({
     this.status,
     this.message,
     this.resetToken,
   });
 
-  factory VerifyOtpRequestModel.fromJson(Map<String, dynamic> json) => VerifyOtpRequestModel(
+  factory VerifyOtpResponseModel.fromJson(Map<String, dynamic> json) => VerifyOtpResponseModel(
     status: json["status"],
     message: json["message"],
     resetToken: json["reset_token"],

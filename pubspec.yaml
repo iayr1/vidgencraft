@@ -47,6 +47,7 @@ dependencies:
   flutter_spinkit: ^5.2.1
   retrofit: ^4.4.2
   build_runner: ^2.4.15
+  retrofit_generator: ^9.1.9
 
 dev_dependencies:
   flutter_test:
