@@ -136,48 +136,59 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Theme(
       data: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: AppColors.neutral10,
+        brightness: isDarkMode ? Brightness.dark : Brightness.light,
+        scaffoldBackgroundColor: isDarkMode ? AppColors.neutral90 : AppColors.neutral10,
         appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.neutral10,
-          foregroundColor: AppColors.neutral100,
+          backgroundColor: isDarkMode ? AppColors.neutral90 : AppColors.neutral10,
+          foregroundColor: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
           elevation: 0,
-          shadowColor: AppColors.neutral30.withOpacity(0.3),
+          shadowColor: isDarkMode ? AppColors.neutral80.withOpacity(0.3) : AppColors.neutral30.withOpacity(0.3),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: AppColors.neutral30),
+            borderSide: BorderSide(color: isDarkMode ? AppColors.neutral70 : AppColors.neutral30),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: AppColors.neutral30),
+            borderSide: BorderSide(color: isDarkMode ? AppColors.neutral70 : AppColors.neutral30),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
             borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           filled: true,
-          fillColor: AppColors.neutral20.withOpacity(0.8),
+          fillColor: isDarkMode ? AppColors.neutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
           labelStyle: AppTextStyles.captionRegular.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral50,
+            color: isDarkMode ? AppColors.neutral30 : AppColors.neutral50,
           ),
           hintStyle: AppTextStyles.bodyRegular.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral50,
+            color: isDarkMode ? AppColors.neutral30 : AppColors.neutral50,
           ),
         ),
       ),
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(
+              Icons.chevron_left,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
           title: Text(
             'Text to Video',
             style: AppTextStyles.titleBold.copyWith(
               fontSize: Window.getFontSize(20),
-              color: AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           flexibleSpace: Container(
@@ -185,7 +196,9 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.primary10, AppColors.neutral10],
+                colors: isDarkMode
+                    ? [AppColors.darkNeutral90 , AppColors.darkNeutral70,]
+                    : [AppColors.pureWhite, AppColors.neutral10],
               ),
             ),
           ),
@@ -202,7 +215,7 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
                     'Describe Your Video',
                     style: AppTextStyles.titleBold.copyWith(
                       fontSize: Window.getFontSize(18),
-                      color: AppColors.neutral100,
+                      color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                     ),
                   ),
                   SizedBox(height: Window.getVerticalSize(12)),
@@ -211,7 +224,7 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
                     maxLines: 4,
                     style: AppTextStyles.bodyRegular.copyWith(
                       fontSize: Window.getFontSize(16),
-                      color: AppColors.neutral100,
+                      color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                     ),
                     decoration: InputDecoration(
                       hintText: 'e.g., A vibrant scene of Avengers Endgame post-credit',
@@ -268,16 +281,17 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
                     height: Window.getVerticalSize(300),
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.neutral20.withOpacity(0.8),
+                      color: isDarkMode ? AppColors.neutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
                       borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.neutral30.withOpacity(0.2),
+                          color: isDarkMode ? AppColors.neutral70.withOpacity(0.2) : AppColors.neutral30.withOpacity(0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
                       ],
-                      border: Border.all(color: AppColors.neutral30.withOpacity(0.5)),
+                      border: Border.all(
+                          color: isDarkMode ? AppColors.neutral70.withOpacity(0.5) : AppColors.neutral30.withOpacity(0.5)),
                     ),
                     child: _generatedVideoUrl != null
                         ? Center(
@@ -285,7 +299,7 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
                         'Video generated: $_generatedVideoUrl\n(Video playback requires additional setup)',
                         style: AppTextStyles.bodyRegular.copyWith(
                           fontSize: Window.getFontSize(14),
-                          color: AppColors.neutral100,
+                          color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                         ),
                       ),
                     )
@@ -294,7 +308,7 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
                         'Generated video will appear here',
                         style: AppTextStyles.bodyRegular.copyWith(
                           fontSize: Window.getFontSize(16),
-                          color: AppColors.neutral50,
+                          color: isDarkMode ? AppColors.neutral30 : AppColors.neutral50,
                         ),
                       ),
                     ),
@@ -314,6 +328,8 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
     required List<String> options,
     required Function(String) onSelected,
   }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -321,7 +337,7 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
           label,
           style: AppTextStyles.captionBold.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral100,
+            color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
           ),
         ),
         SizedBox(height: Window.getVerticalSize(8)),
@@ -339,11 +355,11 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-              border: Border.all(color: AppColors.neutral30),
-              color: AppColors.neutral20.withOpacity(0.8),
+              border: Border.all(color: isDarkMode ? AppColors.neutral70 : AppColors.neutral30),
+              color: isDarkMode ? AppColors.neutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.neutral30.withOpacity(0.2),
+                  color: isDarkMode ? AppColors.neutral70.withOpacity(0.2) : AppColors.neutral30.withOpacity(0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -356,12 +372,12 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
                   value,
                   style: AppTextStyles.bodyRegular.copyWith(
                     fontSize: Window.getFontSize(16),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                   ),
                 ),
                 Icon(
                   Icons.arrow_drop_down,
-                  color: AppColors.neutral50,
+                  color: isDarkMode ? AppColors.neutral30 : AppColors.neutral50,
                 ),
               ],
             ),
@@ -378,9 +394,11 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
     required String selectedValue,
     required Function(String) onSelected,
   }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.neutral10,
+      backgroundColor: isDarkMode ? AppColors.neutral90 : AppColors.neutral10,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -395,11 +413,11 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
                   title,
                   style: AppTextStyles.titleBold.copyWith(
                     fontSize: Window.getFontSize(18),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                   ),
                 ),
               ),
-              Divider(color: AppColors.neutral30.withOpacity(0.5)),
+              Divider(color: isDarkMode ? AppColors.neutral70.withOpacity(0.5) : AppColors.neutral30.withOpacity(0.5)),
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
@@ -409,7 +427,9 @@ class _TextToVideoScreenState extends State<TextToVideoScreen> {
                         option,
                         style: AppTextStyles.bodyRegular.copyWith(
                           fontSize: Window.getFontSize(16),
-                          color: option == selectedValue ? AppColors.primary : AppColors.neutral100,
+                          color: option == selectedValue
+                              ? AppColors.primary
+                              : (isDarkMode ? AppColors.pureWhite : AppColors.neutral100),
                         ),
                       ),
                       trailing: option == selectedValue

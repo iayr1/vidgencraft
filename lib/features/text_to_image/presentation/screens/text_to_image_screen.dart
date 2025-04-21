@@ -20,7 +20,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
   final TextEditingController _seedController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
-  String? _generatedImageUrl; // Store the generated image URL
+  String? _generatedImageUrl;
 
   final Dio _dio = Dio(BaseOptions(
     baseUrl: 'http://192.168.218.191:8001',
@@ -73,7 +73,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
         data: {
           'prompt': _promptController.text,
           'output_type': _selectedOutputType.toLowerCase(),
-          'dimension': _selectedDimension.split(' ')[0], // e.g., "1:1"
+          'dimension': _selectedDimension.split(' ')[0],
           'style': _selectedStyle == 'NONE (Default)' ? null : _selectedStyle.toLowerCase(),
           'seed': _seedController.text.isNotEmpty ? int.tryParse(_seedController.text) : null,
         },
@@ -83,7 +83,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
 
       if (response.statusCode == 200 && result['success'] == true) {
         setState(() {
-          _generatedImageUrl = result['image_url']; // Adjust based on actual response
+          _generatedImageUrl = result['image_url'];
           _isLoading = false;
         });
       } else {
@@ -139,48 +139,59 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Theme(
       data: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: AppColors.neutral10,
+        brightness: MediaQuery.of(context).platformBrightness,
+        scaffoldBackgroundColor: isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10,
         appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.neutral10,
-          foregroundColor: AppColors.neutral100,
+          backgroundColor: isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10,
+          foregroundColor: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
           elevation: 0,
-          shadowColor: AppColors.neutral30.withOpacity(0.3),
+          shadowColor: isDarkMode ? AppColors.darkNeutral30.withOpacity(0.3) : AppColors.neutral30.withOpacity(0.3),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: AppColors.neutral30),
+            borderSide: BorderSide(color: isDarkMode ? AppColors.darkNeutral30 : AppColors.neutral30),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: AppColors.neutral30),
+            borderSide: BorderSide(color: isDarkMode ? AppColors.darkNeutral30 : AppColors.neutral30),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: AppColors.primary, width: 2),
+            borderSide: BorderSide(color: isDarkMode ? AppColors.darkPrimary : AppColors.primary, width: 2),
           ),
           filled: true,
-          fillColor: AppColors.neutral20.withOpacity(0.8),
+          fillColor: isDarkMode ? AppColors.darkNeutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
           labelStyle: AppTextStyles.captionRegular.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral50,
+            color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
           ),
           hintStyle: AppTextStyles.bodyRegular.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral50,
+            color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
           ),
         ),
       ),
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(
+              Icons.chevron_left,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
           title: Text(
             'Text to Image',
             style: AppTextStyles.titleBold.copyWith(
               fontSize: Window.getFontSize(20),
-              color: AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           flexibleSpace: Container(
@@ -188,7 +199,9 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.primary10, AppColors.neutral10],
+                colors: isDarkMode
+                    ? [AppColors.darkNeutral90 , AppColors.darkNeutral70,]
+                    : [AppColors.pureWhite, AppColors.neutral10],
               ),
             ),
           ),
@@ -205,7 +218,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                     'Describe Your Vision',
                     style: AppTextStyles.titleBold.copyWith(
                       fontSize: Window.getFontSize(18),
-                      color: AppColors.neutral100,
+                      color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                     ),
                   ),
                   SizedBox(height: Window.getVerticalSize(12)),
@@ -214,7 +227,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                     maxLines: 4,
                     style: AppTextStyles.bodyRegular.copyWith(
                       fontSize: Window.getFontSize(16),
-                      color: AppColors.neutral100,
+                      color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
                     ),
                     decoration: InputDecoration(
                       hintText: 'e.g., A serene beach at sunset with vibrant colors',
@@ -290,7 +303,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                     'Seed (Optional)',
                     style: AppTextStyles.captionBold.copyWith(
                       fontSize: Window.getFontSize(14),
-                      color: AppColors.neutral100,
+                      color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                     ),
                   ),
                   SizedBox(height: Window.getVerticalSize(8)),
@@ -299,7 +312,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                     keyboardType: TextInputType.number,
                     style: AppTextStyles.bodyRegular.copyWith(
                       fontSize: Window.getFontSize(16),
-                      color: AppColors.neutral100,
+                      color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
                     ),
                     decoration: InputDecoration(
                       hintText: 'Enter seed for consistent results',
@@ -318,7 +331,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                         _errorMessage!,
                         style: AppTextStyles.bodyRegular.copyWith(
                           fontSize: Window.getFontSize(14),
-                          color: AppColors.error60,
+                          color: isDarkMode ? AppColors.darkError60 : AppColors.error60,
                         ),
                       ),
                     ),
@@ -343,16 +356,21 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                     height: Window.getVerticalSize(300),
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.neutral20.withOpacity(0.8),
+                      color: isDarkMode ? AppColors.darkNeutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
                       borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.neutral30.withOpacity(0.2),
+                          color: isDarkMode
+                              ? AppColors.darkNeutral30.withOpacity(0.2)
+                              : AppColors.neutral30.withOpacity(0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
                       ],
-                      border: Border.all(color: AppColors.neutral30.withOpacity(0.5)),
+                      border: Border.all(
+                          color: isDarkMode
+                              ? AppColors.darkNeutral30.withOpacity(0.5)
+                              : AppColors.neutral30.withOpacity(0.5)),
                     ),
                     child: _generatedImageUrl != null
                         ? ClipRRect(
@@ -366,7 +384,8 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                           if (loadingProgress == null) return child;
                           return Center(
                             child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  isDarkMode ? AppColors.darkPrimary : AppColors.primary),
                             ),
                           );
                         },
@@ -376,7 +395,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                               'Failed to load image',
                               style: AppTextStyles.bodyRegular.copyWith(
                                 fontSize: Window.getFontSize(14),
-                                color: AppColors.error60,
+                                color: isDarkMode ? AppColors.darkError60 : AppColors.error60,
                               ),
                             ),
                           );
@@ -388,7 +407,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                         'Generated image will appear here',
                         style: AppTextStyles.bodyRegular.copyWith(
                           fontSize: Window.getFontSize(16),
-                          color: AppColors.neutral50,
+                          color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
                         ),
                       ),
                     ),
@@ -408,6 +427,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
     required List<String> options,
     required Function(String) onSelected,
   }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -415,7 +435,7 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
           label,
           style: AppTextStyles.captionBold.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral100,
+            color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
           ),
         ),
         SizedBox(height: Window.getVerticalSize(8)),
@@ -433,8 +453,15 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-              border: Border.all(color: AppColors.neutral30),
-              color: AppColors.neutral20.withOpacity(0.8),
+              border: Border.all(color: isDarkMode ? AppColors.darkNeutral30 : AppColors.neutral30),
+              color: isDarkMode ? AppColors.darkNeutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
+              boxShadow: [
+                BoxShadow(
+                  color: isDarkMode ? AppColors.darkNeutral30.withOpacity(0.2) : AppColors.neutral30.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -443,12 +470,12 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                   value,
                   style: AppTextStyles.bodyRegular.copyWith(
                     fontSize: Window.getFontSize(16),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
                   ),
                 ),
                 Icon(
                   Icons.arrow_drop_down,
-                  color: AppColors.neutral50,
+                  color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
                 ),
               ],
             ),
@@ -465,9 +492,10 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
     required String selectedValue,
     required Function(String) onSelected,
   }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.neutral10,
+      backgroundColor: isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -482,11 +510,11 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                   title,
                   style: AppTextStyles.titleBold.copyWith(
                     fontSize: Window.getFontSize(18),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
                   ),
                 ),
               ),
-              Divider(color: AppColors.neutral30.withOpacity(0.5)),
+              Divider(color: isDarkMode ? AppColors.darkNeutral30.withOpacity(0.5) : AppColors.neutral30.withOpacity(0.5)),
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
@@ -496,11 +524,13 @@ class _TextToImageScreenState extends State<TextToImageScreen> {
                         option,
                         style: AppTextStyles.bodyRegular.copyWith(
                           fontSize: Window.getFontSize(16),
-                          color: option == selectedValue ? AppColors.primary : AppColors.neutral100,
+                          color: option == selectedValue
+                              ? (isDarkMode ? AppColors.darkPrimary : AppColors.primary)
+                              : (isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100),
                         ),
                       ),
                       trailing: option == selectedValue
-                          ? Icon(Icons.check, color: AppColors.primary)
+                          ? Icon(Icons.check, color: isDarkMode ? AppColors.darkPrimary : AppColors.primary)
                           : null,
                       onTap: () {
                         onSelected(option);

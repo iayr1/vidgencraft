@@ -5,7 +5,6 @@ import 'package:vidgencraft/features/text_to_image/presentation/screens/text_to_
 import 'package:vidgencraft/features/text_to_video/presentation/screens/text_to_video_screen.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_textstyles.dart';
-import '../../../core/utils/windows.dart';
 import '../../../core/widgets/custom_action_button.dart';
 import '../../profile/presentation/screens/profile_screen.dart';
 
@@ -48,41 +47,44 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final textColor = isDarkMode ? AppColors.darkNeutral20 : AppColors
         .neutral80;
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [backgroundColorStart, backgroundColorEnd],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [backgroundColorStart, backgroundColorEnd],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16.0, vertical: 24.0),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Section
-                  _buildHeaderSection(context, isDarkMode, textColor)
-                      .animate()
-                      .fadeIn(duration: 600.ms, curve: Curves.easeOut)
-                      .slideY(begin: 0.2, end: 0),
-                  const SizedBox(height: 24),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0, vertical: 24.0),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Section
+                    _buildHeaderSection(context, isDarkMode, textColor)
+                        .animate()
+                        .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+                        .slideY(begin: 0.2, end: 0),
+                    const SizedBox(height: 24),
 
-                  // Main Actions Section
-                  _buildMainActionsSection(context, isDarkMode),
-                  const SizedBox(height: 32),
-                  // Upgrade Plan Section
-                  _buildUpgradePlanSection(context, isDarkMode, textColor)
-                      .animate()
-                      .fadeIn(duration: 600.ms, delay: 400.ms)
-                      .scale(curve: Curves.easeOut),
-                  const SizedBox(height: 16),
-                ],
+                    // Main Actions Section
+                    _buildMainActionsSection(context, isDarkMode),
+                    const SizedBox(height: 32),
+                    // Upgrade Plan Section
+                    _buildUpgradePlanSection(context, isDarkMode, textColor)
+                        .animate()
+                        .fadeIn(duration: 600.ms, delay: 400.ms)
+                        .scale(curve: Curves.easeOut),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
           ),

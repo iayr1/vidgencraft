@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
                 ? ThemeMode.light
                 : ThemeMode.dark,
             navigatorKey: navigationService.navigatorKey,
-            initialRoute: AppRoutes.login,
+            initialRoute: AppRoutes.splash,
             onGenerateRoute: AppRoutes.generate,
           );
         },

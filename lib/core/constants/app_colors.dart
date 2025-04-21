@@ -89,6 +89,7 @@ class AppColors {
   static const Color darkSecondaryGreen30 = Color(0xCCDDFAF1);
   static const Color darkSecondaryGreen20 = Color(0xEEEFFBF8);
   static  Color darkSecondaryGreen10 = Color(0xFFF7FEFD).withOpacity(0.9);
+  static const Color pureWhite = Color(0xFFFFFFFF);
 
   static const Color darkNeutral100 = Color(0xFF000000);
   static const Color darkNeutral90 = Color(0xFF1A1A1A);

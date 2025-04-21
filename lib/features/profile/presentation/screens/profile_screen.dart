@@ -4,7 +4,7 @@ import 'package:vidgencraft/core/themes/bloc/theme_bloc.dart';
 import 'package:vidgencraft/core/constants/app_colors.dart';
 import 'package:vidgencraft/core/constants/app_textstyles.dart';
 import 'package:vidgencraft/core/utils/windows.dart';
-
+import '../../../../config/routes/app_router.dart';
 import '../../../../core/widgets/custom_action_button.dart';
 
 class ProfilePageWrapper extends StatelessWidget {
@@ -59,6 +59,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                           TextButton(
                             onPressed: () {
                               // TODO: Implement logout functionality
+                              Navigator.pushNamed(context, AppRoutes.login);
                             },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.redAccent,
@@ -86,15 +87,15 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       ),
                       SizedBox(height: Window.getVerticalSize(12)),
                       Text(
-                        'John Doe',
+                        'Mayur Chaudhari',
                         style: AppTextStyles.heading4Bold.copyWith(
                           fontSize: Window.getFontSize(28),
-                          color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+                          color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                           letterSpacing: 0.5,
                         ),
                       ),
                       Text(
-                        'john.doe@example.com',
+                        'mayurchaudhari@gmail.com',
                         style: AppTextStyles.bodyRegular.copyWith(
                           fontSize: Window.getFontSize(16),
                           color: isDarkMode ? AppColors.darkNeutral30 : AppColors.neutral50,
@@ -156,14 +157,14 @@ class ProfileTab extends StatelessWidget {
             'Personal Details',
             style: AppTextStyles.heading5Bold.copyWith(
               fontSize: Window.getFontSize(22),
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           SizedBox(height: Window.getVerticalSize(20)),
-          _buildTextField(context, 'Full Name', 'John Doe'),
-          _buildTextField(context, 'Email', 'john.doe@example.com'),
-          _buildTextField(context, 'Phone', '+1 234 567 8900'),
-          _buildTextField(context, 'Address', '123 Main St, City, Country'),
+          _buildTextField(context, 'Full Name', 'Mayur Chaudhari'),
+          _buildTextField(context, 'Email', 'mayurchaudhari@gmail.com'),
+          _buildTextField(context, 'Phone', '+91 934 567 8900'),
+          _buildTextField(context, 'Address', '123 Main St, Mumbai, India'),
           SizedBox(height: Window.getVerticalSize(20)),
           CustomActionButton(
             name: 'Save Changes',
@@ -219,7 +220,7 @@ class BillingTab extends StatelessWidget {
             'Billing Information',
             style: AppTextStyles.heading5Bold.copyWith(
               fontSize: Window.getFontSize(22),
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           SizedBox(height: Window.getVerticalSize(20)),
@@ -245,7 +246,7 @@ class BillingTab extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
       ),
-      color: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral10,
+      color: isDarkMode ? AppColors.darkNeutral80 : AppColors.pureWhite,
       elevation: 3,
       child: ListTile(
         leading: Icon(
@@ -283,81 +284,143 @@ class UpgradeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
+
+    return SingleChildScrollView(
       padding: Window.getPadding(all: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Upgrade to Pro',
+            'Upgrade Your Plan',
             style: AppTextStyles.heading5Bold.copyWith(
               fontSize: Window.getFontSize(22),
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           SizedBox(height: Window.getVerticalSize(20)),
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            ),
-            color: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral10,
-            elevation: 3,
-            child: Padding(
-              padding: Window.getPadding(all: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Pro Plan Benefits',
-                    style: AppTextStyles.titleSemiBold.copyWith(
-                      fontSize: Window.getFontSize(18),
-                      color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
-                    ),
-                  ),
-                  SizedBox(height: Window.getVerticalSize(10)),
-                  _buildBenefitItem(context, 'Unlimited Access'),
-                  _buildBenefitItem(context, 'Priority Support'),
-                  _buildBenefitItem(context, 'Advanced Analytics'),
-                  SizedBox(height: Window.getVerticalSize(20)),
-                  Center(
-                    child: CustomActionButton(
-                      name: 'Upgrade Now',
-                      isFormFilled: true,
-                      buttonWidth: Window.getHorizontalSize(200),
-                      onTap: (startLoading, stopLoading, btnState) {
-                        // TODO: Implement upgrade functionality
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          _buildPlanCard(
+            context,
+            isDarkMode,
+            title: 'Free',
+            price: '\$0/month',
+            features: [
+              'Basic video generation',
+              'Limited exports',
+              'Community support',
+            ],
+            buttonLabel: 'Current Plan',
+            isDisabled: true,
+          ),
+          SizedBox(height: Window.getVerticalSize(16)),
+          _buildPlanCard(
+            context,
+            isDarkMode,
+            title: 'Pro',
+            price: '\$9.99/month',
+            features: [
+              'Unlimited video generation',
+              'HD export quality',
+              'Priority support',
+            ],
+            buttonLabel: 'Upgrade to Pro',
+            isDisabled: false,
+          ),
+          SizedBox(height: Window.getVerticalSize(16)),
+          _buildPlanCard(
+            context,
+            isDarkMode,
+            title: 'Premium',
+            price: '\$19.99/month',
+            features: [
+              'Everything in Pro',
+              'Team collaboration tools',
+              'Advanced analytics',
+            ],
+            buttonLabel: 'Upgrade to Premium',
+            isDisabled: false,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBenefitItem(BuildContext context, String benefit) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: Window.getSymmetricPadding(vertical: 5),
-      child: Row(
-        children: [
-          Icon(
-            Icons.check_circle,
-            color: isDarkMode ? AppColors.darkPrimary : AppColors.primary,
-            size: Window.getSize(20),
-          ),
-          SizedBox(width: Window.getHorizontalSize(10)),
-          Text(
-            benefit,
-            style: AppTextStyles.bodyRegular.copyWith(
-              fontSize: Window.getFontSize(16),
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+  Widget _buildPlanCard(
+      BuildContext context,
+      bool isDarkMode, {
+        required String title,
+        required String price,
+        required List<String> features,
+        required String buttonLabel,
+        required bool isDisabled,
+      }) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
+      ),
+      color: isDarkMode ? AppColors.darkNeutral80 : AppColors.pureWhite,
+      elevation: 3,
+      child: Padding(
+        padding: Window.getPadding(all: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: AppTextStyles.titleBold.copyWith(
+                fontSize: Window.getFontSize(20),
+                color: isDarkMode ? AppColors.neutral10 : AppColors.neutral100,
+              ),
             ),
-          ),
-        ],
+            SizedBox(height: Window.getVerticalSize(6)),
+            Text(
+              price,
+              style: AppTextStyles.bodySemiBold.copyWith(
+                fontSize: Window.getFontSize(16),
+                color: isDarkMode ? AppColors.darkPrimary : AppColors.primary,
+              ),
+            ),
+            SizedBox(height: Window.getVerticalSize(12)),
+            ...features.map(
+                  (f) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      size: 16,
+                      color: isDarkMode ? AppColors.darkPrimary : AppColors.primary,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        f,
+                        style: AppTextStyles.bodyRegular.copyWith(
+                          fontSize: Window.getFontSize(14),
+                          color: isDarkMode ? AppColors.darkPrimary : AppColors.neutral100,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: Window.getVerticalSize(16)),
+            Center(
+              child: CustomActionButton(
+                name: buttonLabel,
+                isFormFilled: !isDisabled,
+                buttonWidth: Window.getHorizontalSize(200),
+                onTap: (startLoading, stopLoading, btnState) async {
+                  if (isDisabled) return;
+                  startLoading();
+                  await Future.delayed(const Duration(seconds: 1));
+                  stopLoading();
+                  // TODO: Navigate to payment/upgrade screen
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -377,7 +440,7 @@ class NotificationsTab extends StatelessWidget {
             'Notifications',
             style: AppTextStyles.heading5Bold.copyWith(
               fontSize: Window.getFontSize(22),
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           SizedBox(height: Window.getVerticalSize(20)),
@@ -396,7 +459,7 @@ class NotificationsTab extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
       ),
-      color: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral10,
+      color: isDarkMode ? AppColors.darkNeutral80 : AppColors.pureWhite,
       elevation: 3,
       child: ListTile(
         leading: Icon(
@@ -444,7 +507,7 @@ class ReferEarnTab extends StatelessWidget {
             'Refer & Earn',
             style: AppTextStyles.heading5Bold.copyWith(
               fontSize: Window.getFontSize(22),
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           SizedBox(height: Window.getVerticalSize(20)),
@@ -452,7 +515,7 @@ class ReferEarnTab extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
             ),
-            color: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral10,
+            color: isDarkMode ? AppColors.darkNeutral80 : AppColors.pureWhite,
             elevation: 3,
             child: Padding(
               padding: Window.getPadding(all: 20),
@@ -526,7 +589,7 @@ class ReferEarnTab extends StatelessWidget {
             'Your Rewards',
             style: AppTextStyles.titleSemiBold.copyWith(
               fontSize: Window.getFontSize(18),
-              color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           SizedBox(height: Window.getVerticalSize(10)),
@@ -544,7 +607,7 @@ class ReferEarnTab extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
       ),
-      color: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral10,
+      color: isDarkMode ? AppColors.darkNeutral80 : AppColors.pureWhite,
       elevation: 3,
       child: ListTile(
         leading: Icon(

@@ -191,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       Text(
                         "Welcome Back!",
                         style: AppTextStyles.heading3Bold.copyWith(
-                          color: textColor,
+                          color: isDarkMode ? AppColors.neutral10 : textColor,
                           letterSpacing: 1.2,
                         ),
                       ).animate(controller: _animationController).fadeIn(duration: 600.ms).slideY(begin: -0.1),
@@ -300,7 +300,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         label: Text(
                           "Login with Google",
                           style: AppTextStyles.bodyBold.copyWith(
-                            color: textColor,
+                            color: isDarkMode ? AppColors.neutral10 : textColor,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(

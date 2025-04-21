@@ -53,6 +53,7 @@ dependencies:
   json_annotation: ^4.9.0
   json_serializable: ^6.9.5
   freezed: ^3.0.6
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

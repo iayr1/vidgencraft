@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:vidgencraft/core/constants/app_colors.dart';
 import 'package:vidgencraft/core/constants/app_textstyles.dart';
 import 'package:vidgencraft/core/utils/windows.dart';
@@ -15,6 +18,8 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
   String? selectedExpression;
   String? selectedBackground;
   String selectedModel = 'Kling';
+  File? _selectedImage; // Store the selected image file
+  final ImagePicker _picker = ImagePicker(); // Image picker instance
   final List<String> expressions = [
     '😂 Laughing',
     '😭 Crying',
@@ -48,7 +53,6 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
   @override
   void initState() {
     super.initState();
-    Window().adaptDeviceScreenSize(view: WidgetsBinding.instance.platformDispatcher.views.first);
     _controller = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
@@ -66,53 +70,152 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
     super.dispose();
   }
 
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024, // Optimize for performance
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking image: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  // Show bottom sheet to choose between gallery and camera
+  void _showImageSourceOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  'Select Image Source',
+                  style: AppTextStyles.titleBold.copyWith(
+                    fontSize: Window.getFontSize(18),
+                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library,
+                  color: isDarkMode ? AppColors.darkPrimary : AppColors.primary,
+                ),
+                title: Text(
+                  'Gallery',
+                  style: AppTextStyles.bodyRegular.copyWith(
+                    fontSize: Window.getFontSize(16),
+                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.camera_alt,
+                  color: isDarkMode ? AppColors.darkPrimary : AppColors.primary,
+                ),
+                title: Text(
+                  'Camera',
+                  style: AppTextStyles.bodyRegular.copyWith(
+                    fontSize: Window.getFontSize(16),
+                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              SizedBox(height: Window.getVerticalSize(16)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Set the theme for AppColors
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
 
     return Theme(
       data: ThemeData(
-        // Use system brightness
         brightness: MediaQuery.of(context).platformBrightness,
-        scaffoldBackgroundColor: AppColors.neutral10,
+        scaffoldBackgroundColor: isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10,
         appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.neutral10,
-          foregroundColor: AppColors.neutral100,
+          backgroundColor: isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10,
+          foregroundColor: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
           elevation: 0,
-          shadowColor: AppColors.neutral30.withOpacity(0.3),
+          shadowColor: isDarkMode ? AppColors.darkNeutral30.withOpacity(0.3) : AppColors.neutral30.withOpacity(0.3),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: AppColors.neutral30),
+            borderSide: BorderSide(color: isDarkMode ? AppColors.darkNeutral30 : AppColors.neutral30),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: AppColors.neutral30),
+            borderSide: BorderSide(color: isDarkMode ? AppColors.darkNeutral30 : AppColors.neutral30),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-            borderSide: BorderSide(color: AppColors.primary, width: 2),
+            borderSide: BorderSide(color: isDarkMode ? AppColors.darkPrimary : AppColors.primary, width: 2),
           ),
           filled: true,
-          fillColor: AppColors.neutral20.withOpacity(0.8),
+          fillColor: isDarkMode ? AppColors.darkNeutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
           labelStyle: AppTextStyles.captionRegular.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral50,
+            color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
           ),
           hintStyle: AppTextStyles.bodyRegular.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral50,
+            color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
           ),
         ),
       ),
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(
+              Icons.chevron_left,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
           title: Text(
             'Image to Video',
             style: AppTextStyles.titleBold.copyWith(
               fontSize: Window.getFontSize(20),
-              color: AppColors.neutral100,
+              color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
             ),
           ),
           flexibleSpace: Container(
@@ -120,7 +223,9 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [AppColors.primary10, AppColors.neutral10],
+                colors: isDarkMode
+                    ? [AppColors.darkNeutral90 , AppColors.darkNeutral70,]
+                    : [AppColors.pureWhite, AppColors.neutral10],
               ),
             ),
           ),
@@ -137,30 +242,62 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                   'Upload Image',
                   style: AppTextStyles.titleBold.copyWith(
                     fontSize: Window.getFontSize(18),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                   ),
                 ),
                 SizedBox(height: Window.getVerticalSize(12)),
-                Container(
-                  height: Window.getVerticalSize(200),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppColors.neutral20.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.neutral30.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                GestureDetector(
+                  onTap: _showImageSourceOptions,
+                  child: Container(
+                    height: Window.getVerticalSize(200),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? AppColors.darkNeutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDarkMode
+                              ? AppColors.darkNeutral30.withOpacity(0.2)
+                              : AppColors.neutral30.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: isDarkMode
+                            ? AppColors.darkNeutral30.withOpacity(0.5)
+                            : AppColors.neutral30.withOpacity(0.5),
                       ),
-                    ],
-                    border: Border.all(color: AppColors.neutral30.withOpacity(0.5)),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.image,
-                      color: AppColors.neutral50,
-                      size: 50,
+                    ),
+                    child: _selectedImage != null
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(Window.getRadiusSize(16)),
+                      child: Image.file(
+                        _selectedImage!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
+                    )
+                        : Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.image,
+                            color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
+                            size: 50,
+                          ),
+                          SizedBox(height: Window.getVerticalSize(8)),
+                          Text(
+                            'Tap to select image',
+                            style: AppTextStyles.bodyRegular.copyWith(
+                              fontSize: Window.getFontSize(14),
+                              color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -182,7 +319,7 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                   'Choose an Expression',
                   style: AppTextStyles.titleBold.copyWith(
                     fontSize: Window.getFontSize(18),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                   ),
                 ),
                 SizedBox(height: Window.getVerticalSize(12)),
@@ -205,11 +342,15 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                           child: Container(
                             padding: Window.getSymmetricPadding(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primary90 : AppColors.neutral30,
+                              color: isSelected
+                                  ? (isDarkMode ? AppColors.darkPrimary90 : AppColors.primary90)
+                                  : (isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral30),
                               borderRadius: BorderRadius.circular(Window.getRadiusSize(20)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.neutral30.withOpacity(0.2),
+                                  color: isDarkMode
+                                      ? AppColors.darkNeutral30.withOpacity(0.2)
+                                      : AppColors.neutral30.withOpacity(0.2),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -219,7 +360,9 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                               child: Text(
                                 expression,
                                 style: AppTextStyles.subtitleSemiBold.copyWith(
-                                  color: isSelected ? AppColors.neutral10 : AppColors.neutral100,
+                                  color: isSelected
+                                      ? (isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10)
+                                      : (isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100),
                                   fontSize: Window.getFontSize(14),
                                 ),
                               ),
@@ -237,7 +380,7 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                   'Choose Background',
                   style: AppTextStyles.titleBold.copyWith(
                     fontSize: Window.getFontSize(18),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                   ),
                 ),
                 SizedBox(height: Window.getVerticalSize(12)),
@@ -264,7 +407,11 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
                           border: Border.all(
-                            color: isSelected ? AppColors.primary : AppColors.neutral30.withOpacity(0.5),
+                            color: isSelected
+                                ? (isDarkMode ? AppColors.darkPrimary : AppColors.primary)
+                                : (isDarkMode
+                                ? AppColors.darkNeutral30.withOpacity(0.5)
+                                : AppColors.neutral30.withOpacity(0.5)),
                             width: isSelected ? 3 : 1,
                           ),
                         ),
@@ -283,7 +430,7 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                                 right: 6,
                                 child: Icon(
                                   Icons.check_circle,
-                                  color: AppColors.primary,
+                                  color: isDarkMode ? AppColors.darkPrimary : AppColors.primary,
                                   size: 20,
                                 ),
                               ),
@@ -300,7 +447,7 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                   'Describe Your Video',
                   style: AppTextStyles.titleBold.copyWith(
                     fontSize: Window.getFontSize(18),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
                   ),
                 ),
                 SizedBox(height: Window.getVerticalSize(12)),
@@ -309,7 +456,7 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                   maxLines: 4,
                   style: AppTextStyles.bodyRegular.copyWith(
                     fontSize: Window.getFontSize(16),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
                   ),
                   decoration: InputDecoration(
                     hintText: 'e.g., A character dancing in a vibrant city',
@@ -360,6 +507,7 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
     required List<String> options,
     required Function(String) onSelected,
   }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -367,7 +515,7 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
           label,
           style: AppTextStyles.captionBold.copyWith(
             fontSize: Window.getFontSize(14),
-            color: AppColors.neutral100,
+            color: isDarkMode ? AppColors.pureWhite : AppColors.neutral100,
           ),
         ),
         SizedBox(height: Window.getVerticalSize(8)),
@@ -385,11 +533,13 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Window.getRadiusSize(12)),
-              border: Border.all(color: AppColors.neutral30),
-              color: AppColors.neutral20.withOpacity(0.8),
+              border: Border.all(color: isDarkMode ? AppColors.darkNeutral30 : AppColors.neutral30),
+              color: isDarkMode ? AppColors.darkNeutral80.withOpacity(0.8) : AppColors.neutral20.withOpacity(0.8),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.neutral30.withOpacity(0.2),
+                  color: isDarkMode
+                      ? AppColors.darkNeutral30.withOpacity(0.2)
+                      : AppColors.neutral30.withOpacity(0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -402,12 +552,12 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                   value,
                   style: AppTextStyles.bodyRegular.copyWith(
                     fontSize: Window.getFontSize(16),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
                   ),
                 ),
                 Icon(
                   Icons.arrow_drop_down,
-                  color: AppColors.neutral50,
+                  color: isDarkMode ? AppColors.darkNeutral40 : AppColors.neutral50,
                 ),
               ],
             ),
@@ -424,9 +574,10 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
     required String selectedValue,
     required Function(String) onSelected,
   }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.neutral10,
+      backgroundColor: isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -441,11 +592,11 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                   title,
                   style: AppTextStyles.titleBold.copyWith(
                     fontSize: Window.getFontSize(18),
-                    color: AppColors.neutral100,
+                    color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
                   ),
                 ),
               ),
-              Divider(color: AppColors.neutral30.withOpacity(0.5)),
+              Divider(color: isDarkMode ? AppColors.darkNeutral30.withOpacity(0.5) : AppColors.neutral30.withOpacity(0.5)),
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
@@ -455,11 +606,13 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
                         option,
                         style: AppTextStyles.bodyRegular.copyWith(
                           fontSize: Window.getFontSize(16),
-                          color: option == selectedValue ? AppColors.primary : AppColors.neutral100,
+                          color: option == selectedValue
+                              ? (isDarkMode ? AppColors.darkPrimary : AppColors.primary)
+                              : (isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100),
                         ),
                       ),
                       trailing: option == selectedValue
-                          ? Icon(Icons.check, color: AppColors.primary)
+                          ? Icon(Icons.check, color: isDarkMode ? AppColors.darkPrimary : AppColors.primary)
                           : null,
                       onTap: () {
                         onSelected(option);
@@ -481,16 +634,17 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
     required String text,
     required VoidCallback onPressed,
   }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onPressed,
       child: Container(
         padding: Window.getSymmetricPadding(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.neutral20,
+          color: isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral20,
           borderRadius: BorderRadius.circular(Window.getRadiusSize(8)),
           boxShadow: [
             BoxShadow(
-              color: AppColors.neutral30.withOpacity(0.2),
+              color: isDarkMode ? AppColors.darkNeutral30.withOpacity(0.2) : AppColors.neutral30.withOpacity(0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -499,63 +653,10 @@ class _ImageToVideoScreenState extends State<ImageToVideoScreen> with SingleTick
         child: Text(
           text,
           style: AppTextStyles.subtitleRegular.copyWith(
-            color: AppColors.neutral100,
+            color: isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100,
             fontSize: Window.getFontSize(14),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class ScaleTransitionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  final Widget child;
-
-  const ScaleTransitionButton({
-    super.key,
-    required this.onPressed,
-    required this.child,
-  });
-
-  @override
-  _ScaleTransitionButtonState createState() => _ScaleTransitionButtonState();
-}
-
-class _ScaleTransitionButtonState extends State<ScaleTransitionButton> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 100),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        widget.onPressed();
-      },
-      onTapCancel: () => _controller.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: widget.child,
       ),
     );
   }

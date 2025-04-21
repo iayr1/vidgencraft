@@ -174,8 +174,8 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColorStart = isDarkMode ? AppColors.darkHeavenStart : AppColors.neutral10;
-    final backgroundColorEnd = isDarkMode ? AppColors.darkHeavenEnd : AppColors.neutral10;
+    final backgroundColorStart = isDarkMode ? AppColors.darkNeutral90 : AppColors.neutral10;
+    final backgroundColorEnd = isDarkMode ? AppColors.darkNeutral80 : AppColors.neutral10;
     final borderColor = isDarkMode ? AppColors.accentGlow : AppColors.primary;
     final textColor = isDarkMode ? AppColors.darkNeutral10 : AppColors.neutral100;
 
@@ -203,7 +203,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                       Text(
                         "Join the Journey",
                         style: AppTextStyles.heading3Bold.copyWith(
-                          color: textColor,
+                          color: isDarkMode ? AppColors.neutral10 : textColor,
                           letterSpacing: 1.2,
                         ),
                       ).animate(controller: _animationController).fadeIn(duration: 600.ms).slideY(begin: -0.1),
@@ -333,7 +333,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                         label: Text(
                           "Continue with Google",
                           style: AppTextStyles.bodyBold.copyWith(
-                            color: textColor,
+                            color: isDarkMode ? AppColors.neutral10 : textColor,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
